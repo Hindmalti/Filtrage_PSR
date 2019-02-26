@@ -1,5 +1,5 @@
-TARGET=ARPCountTest
-LIBS=-lpcap -lpthread
+TARGET=UDPTest
+LIBS=-lpcap -lnet
 
 all: compile
 
@@ -11,3 +11,6 @@ exec: compile
 
 compile:
 	gcc -Wall $(TARGET).c -o $(TARGET).out $(LIBS)
+
+kate:
+	kate makefile $(TARGET).c &
