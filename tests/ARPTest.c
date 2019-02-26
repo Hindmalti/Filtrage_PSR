@@ -71,7 +71,8 @@ struct sniff_arp {
 };
 
 int main(void){
-    char *dev, errbuf[PCAP_ERRBUF_SIZE];
+    char *dev;
+    char errbuf[PCAP_ERRBUF_SIZE];
     pcap_t *handle;
     struct bpf_program fp;
     bpf_u_int32 mask;
@@ -79,11 +80,13 @@ int main(void){
     char filter_exp[] = "arp";
 
     // search for default device
-    dev = pcap_lookupdev(errbuf);
+    dev = "bridge"; //pcap_lookupdev(errbuf);
     if(dev == NULL) {
         fprintf(stderr, "Couldn't find default device: %s\n", errbuf);
         return 2;
     }
+    
+    printf("Dev :%s:\n", dev);
     
     // open device
     handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
@@ -113,27 +116,17 @@ int main(void){
     // sniffing
     struct pcap_pkthdr header;
     const u_char *packet = pcap_next(handle, &header);
-    
-    const struct sniff_ethernet *ethernet = (struct sniff_ethernet*)(packet);
-    const struct sniff_arp *arp = (struct sniff_ip*)(packet + SIZE_ETHERNET);
-    
-    /*const struct sniff_ip *ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);
-    u_int size_ip = IP_HL(ip)*4;
-    if (size_ip < 20) {
-        printf("   * Invalid IP header length: %u bytes\n", size_ip);
-        return 2;
-    }*/
-    /*const struct sniff_tcp *tcp = (struct sniff_tcp*)(packet + SIZE_ETHERNET + size_ip);
-    u_int size_tcp = TH_OFF(tcp)*4;
-    if (size_tcp < 20) {
-        printf("   * Invalid TCP header length: %u bytes\n", size_tcp);
-        return 2;
-    }*/
-    const char *payload = (u_char *)(packet + SIZE_ETHERNET /*+ size_ip/* + size_tcp*/);
+    const struct sniff_arp *arp = (struct sniff_arp*) (packet + SIZE_ETHERNET);
 
+    // print
     printf("Jacked a packet with length of [%d]\n", header.len);
-    printf("Dest :%s:\n", arp->arp_dhost);
-    printf("Src :%s:\n", arp->arp_shost);
+    printf("Dest :");
+    for(int i=0; i<6; i++)
+        printf("%02x:", arp->arp_dhost[i]);
+    printf("\nSrc :");
+    for(int i=0; i<6; i++)
+        printf("%02x:", arp->arp_shost[i]);
+    printf("\n");
     
     // close session
     pcap_close(handle);
