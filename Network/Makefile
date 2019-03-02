@@ -1,3 +1,4 @@
+CLIB = ar cq
 #
 # Makefile pour generer la bibliotheque de fonctions de communication
 #
@@ -17,6 +18,6 @@ clean:
 
 libnet.o: libnet.c libnet.h
  
-libcom.a: libnet.o
+libnet.a: libnet.o
 	rm -f $@
 	$(CLIB) $@ $+

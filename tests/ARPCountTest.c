@@ -30,7 +30,7 @@ void interrupt(int sig){
 }
 
 int main(void){
-    char *dev;
+    char dev[] = "bridge";
     char errbuf[PCAP_ERRBUF_SIZE];
     bpf_u_int32 mask;
     bpf_u_int32 net;
@@ -41,7 +41,6 @@ int main(void){
     sigaction(SIGINT, &action, NULL);
 
     // search for default device
-    dev = "bridge"; //pcap_lookupdev(errbuf);
     if(dev == NULL) {
         fprintf(stderr, "Couldn't find default device: %s\n", errbuf);
         return 2;
