@@ -17,7 +17,7 @@ clean:
 #
 
 libnet.o: libnet.c libnet.h
- 
+
 libnet.a: libnet.o
 	rm -f $@
 	$(CLIB) $@ $+

@@ -1,15 +1,15 @@
-#include<sys/types.h>
-#include<sys/socket.h>
-#include<netdb.h>
-#include<errno.h>
-#include<stdlib.h>
-#include<netinet/udp.h>
-#include<netinet/in.h>
-#include<netinet/ip.h>
-#include<string.h>
-#include<stdio.h>
-#include<arpa/inet.h>
-#include<unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <netinet/udp.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
+#include <string.h>
+#include <stdio.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 #include "libnet.h"
 
 
@@ -38,7 +38,8 @@ int sendUDPBroadcast(char *message, int port) {
     //Mise du port en ordre du réseau (big endian)
     broadcast_address.sin_addr.s_addr = INADDR_BROADCAST;
     //Adresse = 255.255.255.255 
-    if(sendto(s, message, strlen(message), 0, (struct sockaddr *) &broadcast_address, sizeof(broadcast_address)) < 0 ) {
+    if(sendto(s, message, strlen(message), 0, (struct sockaddr *) &broadcast_address,
+            sizeof(broadcast_address)) < 0 ) {
         perror("sendUDPBroadcast.sendto");
         exit(-1);
     }
@@ -82,7 +83,8 @@ int initialisationServeur(char *service){
     precisions.ai_flags = AI_PASSIVE;
     statut = getaddrinfo(NULL, service, &precisions, &origine);
     if(statut < 0){ 
-        perror("initialisationSocketUDP.getaddrinfo"); exit(EXIT_FAILURE); 
+        perror("initialisationSocketUDP.getaddrinfo");
+        exit(EXIT_FAILURE); 
     }
     struct addrinfo *p;
     for(p = origine, resultat = origine; p != NULL; p = p->ai_next) {
@@ -94,9 +96,10 @@ int initialisationServeur(char *service){
 
     /* Creation d'une socket */
     s = socket(resultat->ai_family, resultat->ai_socktype, resultat->ai_protocol);
-    if(s < 0){ perror("initialisationSocketUDP.socket");
+    if(s < 0){
+        perror("initialisationSocketUDP.socket");
         exit(EXIT_FAILURE);
-        }
+    }
 
     /* Options utiles */
     int vrai = 1;
@@ -116,10 +119,9 @@ int initialisationServeur(char *service){
     freeaddrinfo(origine);
 
 /* Taille de la queue d'attente */
-    statut=listen(s,MAX_TCP_CONNEXION);
-    if(statut < 0) {
+    statut = listen(s, MAX_TCP_CONNEXION);
+    if(statut < 0)
         return -1;
-    }
     return s;
 }
 
@@ -133,5 +135,4 @@ int boucleServeur(int socket, void (*traitement)(int)){
         traitement(socket_dialogue);
         return 0;
     }
-
 }
