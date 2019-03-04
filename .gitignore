@@ -3,6 +3,7 @@
 !*.*
 
 !Makefile
+!makefile
 
 *.o
 *.elf
