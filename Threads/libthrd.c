@@ -1,5 +1,7 @@
 #include <pthread.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 struct ThreadParam {
     void (*fonction)(void*);
@@ -8,7 +10,7 @@ struct ThreadParam {
 
 static void *_lanceThread(void *threadParam){
     struct ThreadParam *threadParam2 = threadParam;
-    threadParam2->fonction(threadParam->params);
+    threadParam2->fonction(threadParam2->params);
     free(threadParam2->params);
     free(threadParam2);
 }
