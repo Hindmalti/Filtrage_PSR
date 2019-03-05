@@ -2,6 +2,7 @@
 
 #include <avr/io.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "serial.h"
 

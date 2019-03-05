@@ -12,7 +12,7 @@ PROTOCOL = stk500v1	# stk500 / stk500v1
 SPEED = 115200		# 57600 / 115200
 SERIAL = /dev/ttyACM0	# ttyUSB0 / ttyACM0
 
-TARGET = broadcast
+TARGET = tangibleInterface
 SOURCES = $(wildcard *.c)
 OBJECTS = $(SOURCES:.c=.o)
 
