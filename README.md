@@ -1,24 +1,15 @@
-de PC vers Arduino (UDP)
+# Tutorat PSR
 
-XXXYYYYY YYYYYYYY (8 bits)
+## Choix de la trame
+
+XXXYYYYY YYYYYYYY (2 bytes)
 
 XXX : commandes
- - 0b000 demande de statut (veille ou éveil ?)
-  YYYYYY YYYYYYYY : 0x00 veille | 0x01 réveille
+* 000 getStatus : demande à l'interface son status (les Y sont ignorés)
+* 001 retStatus : l'interface retourne son status (Y = 00000 00000001 : mode éveillé | Y = 00000 00000000 : mode sommeil)
+* 010 setStatus : demande à l'interface de passer dans le mode sommeil ou éveillé (Y = 00000 00000001 : mode éveillé | Y = 00000 00000000 : mode sommeil)
+* 011 getCommande : demande à l'interface la commande en mémoire
+* 100 retCommande : l'interface retourne sa commande en mémoire (les Y représentent un pourcentage : Y = 11111 11111111 : 100%, Y = 00000 00000000 : 0%)
+* 101 setCommande : envoie à l'interface la commande à executer (les Y représentent un pourcentage : Y = 11111 11111111 : 100%, Y = 00000 00000000 : 0%)
 
- - 0b001 set statut -> possible de broadcast
-  YYYYYY YYYYYYYY : 0x00
-
- - 0b010 envoie du nombre de trames en 1 sec dans les Y
-  YYYYYY YYYYYYYY : puissance de commande (0% - 100%)
-
- - 0b011, 0b100, 0b101, 0b110, 0b111 reservépour une utilisation future
-
-
-de Arduino vers PC (TCP)
-
-XXXYYYYY YYYYYYYY (8 bits)
-
-XXX : code réponse
- - 0b000 réponse à demande de statut -> YYYYY = 0b00001 (éveille) | 0b00000 (veille)
- - 0b001 ACK envoie du nombre de trames par sec -> YYYYY = 0b00000
+Le choix nous permet de nous affranchir de la provenance de la trame (UDP et TCP). Cela équivaut à une encapsulation de niveau 7 (niveau applicatif) dans le modèle OSI.
