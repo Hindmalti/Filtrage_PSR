@@ -398,6 +398,8 @@ uint16 recvfrom(
 	uint8 head[8];
 	uint16 data_len=0;
 	uint16 ptr=0;
+    uint16 plen = getSn_RX_RSR(s);
+        if(plen <=0 ) return 0;
 #ifdef __DEF_IINCHIP_DBG__
 	printf("recvfrom()\r\n");
 #endif

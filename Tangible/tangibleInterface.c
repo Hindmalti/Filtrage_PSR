@@ -1,6 +1,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "serial.h"
 #include "ethernet.h"
@@ -26,8 +27,22 @@ int main(void){
     int status = socket(s, Sn_MR_UDP, 2020, NULL);
     if(status <= 0){ printf("Error: echec de la creation de la socket\n"); }
     
-    uint8_t ip_src[] = {172, 26, 145, 44};
     while(1){
+        
+        
+        /*-------- SEND TO
+        uint8_t ip_src[] = {172, 26, 145, 255};
+        uint8_t data[BUFFER_SIZE] = "ST WICHMANN PENDANT 4H DEMAIN A 8H";
+        int i;
+        
+        status = sendto(s, data, strlen(data), ip_src, 2020);
+        if(status <= 0){ printf("Error: echec de la reception\n"); }
+        
+        printf("Envoyé !\n");
+        _delay_ms(1000);*/
+        
+        /*-------- RECV FROM
+        uint8_t ip_src[4];
         uint8_t data[BUFFER_SIZE];
         int i;
         for(i=0; i<BUFFER_SIZE; i++)
@@ -36,18 +51,19 @@ int main(void){
         status = recvfrom(s, data, BUFFER_SIZE, ip_src, 2020);
         if(status <= 0){ printf("Error: echec de la reception\n"); }
         
+        printf("IP :%d.%d.%d.%d:\n", ip_src[0], ip_src[1], ip_src[2], ip_src[3]);
         printf("Recu :%s:\n", data);
-        _delay_ms(1000);
+        _delay_ms(100);*/
     }
     return 0;
 }
 
 /*
- * uint16 recvfrom(
-	SOCKET s, 	/**< the socket number 
-	uint8 * buf, 	/**< a pointer to copy the data to be received 
-	uint16 len, 	/**< the data size to read 
-	uint8 * addr, 	/**< a pointer to store the peer's IP address 
-	uint16 *port	/**< a pointer to store the peer's port number. 
+ * sendto(
+	SOCKET s, 		/**< socket index 
+	const uint8 * buf, 	/**< a pointer to the data 
+	uint16 len, 		/**< the data size to send
+	uint8 * addr, 		/**< the peer's Destination IP address 
+	uint16 port		/**< the peer's destination port number 
 	)
 */
