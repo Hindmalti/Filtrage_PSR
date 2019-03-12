@@ -16,54 +16,55 @@
 int main(void){
     init_printf();
 
+    // Ethernet
     uint8_t mac[] = {0x00, 0x20, 0x20, 0x20, 0x20, 0x08};
     uint8_t ip[] = {172, 26, 145, 208};
     uint8_t gateway[] = {172, 26, 145, 44};
     uint8_t mask[] = {255, 255, 255, 0};
     ethernet_init(mac, ip, gateway, mask);
 
-    SOCKET s = 1;
-    DDRB = 0x20;
-    int status = socket(s, Sn_MR_UDP, 2020, NULL);
-    if(status <= 0){ printf("Error: echec de la creation de la socket\n"); }
+    // socket UDP
+    SOCKET sUDP = 1;
+    int status = socket(sUDP, Sn_MR_UDP, 2020, NULL);
+    if(status <= 0){ printf("Error: echec de la creation de la socket UDP\n"); }
+    
+    // socket TCP
+    SOCKET sTCP = 2;
+    status = socket(sTCP, Sn_MR_TCP, 2020, NULL);
+    if(status <= 0){ printf("Error: echec de la creation de la socket TCP\n"); }
+    
     
     while(1){
-        
-        
-        /*-------- SEND TO
-        uint8_t ip_src[] = {172, 26, 145, 255};
-        uint8_t data[BUFFER_SIZE] = "ST WICHMANN PENDANT 4H DEMAIN A 8H";
-        int i;
-        
-        status = sendto(s, data, strlen(data), ip_src, 2020);
-        if(status <= 0){ printf("Error: echec de la reception\n"); }
-        
-        printf("Envoyé !\n");
-        _delay_ms(1000);*/
-        
-        /*-------- RECV FROM
-        uint8_t ip_src[4];
+        // Traitement UDP
+        /*uint8_t ip_src[4];
         uint8_t data[BUFFER_SIZE];
         int i;
         for(i=0; i<BUFFER_SIZE; i++)
             data[i] = 0;
         
-        status = recvfrom(s, data, BUFFER_SIZE, ip_src, 2020);
-        if(status <= 0){ printf("Error: echec de la reception\n"); }
+        status = recvfrom(sUDP, data, BUFFER_SIZE, ip_src, 2020);
+        if(status <= 0){ printf("Error: echec de la reception UDP\n"); }
         
         printf("IP :%d.%d.%d.%d:\n", ip_src[0], ip_src[1], ip_src[2], ip_src[3]);
+        printf("Recu :%s:\n", data);*/
+        
+        // Traitement TCP
+        status = listen(sTCP);
+        if(status <= 0){ printf("Error: echec du listen\n"); }
+        
+        status = accept(sTCP);
+        if(status <= 0){ printf("Error: echec de l'accept\n"); }
+        
+        uint8_t data[BUFFER_SIZE];
+        int i;
+        for(i=0; i<BUFFER_SIZE; i++)
+            data[i] = 0;
+        status = recv(sTCP, data, BUFFER_SIZE);
+        if(status <= 0){ printf("Error: echec de la reception TCP\n"); }
+        
         printf("Recu :%s:\n", data);
-        _delay_ms(100);*/
+        
+        _delay_ms(100);
     }
     return 0;
 }
-
-/*
- * sendto(
-	SOCKET s, 		/**< socket index 
-	const uint8 * buf, 	/**< a pointer to the data 
-	uint16 len, 		/**< the data size to send
-	uint8 * addr, 		/**< the peer's Destination IP address 
-	uint16 port		/**< the peer's destination port number 
-	)
-*/

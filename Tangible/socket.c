@@ -105,16 +105,49 @@ uint8 listen(
 	{
 		IINCHIP_WRITE(Sn_CR(s),Sn_CR_LISTEN);
 		/* +20071122[chungs]:wait to process the command... */
-		while( IINCHIP_READ(Sn_CR(s)) ) 
-			;
+		while( IINCHIP_READ(Sn_CR(s)) );
 		/* ------- */
 		ret = 1;
+#ifdef __DEF_IINCHIP_DBG__
+	printf("status = %x\r\n",IINCHIP_READ(Sn_SR(s)));
+#endif
 	}
 	else
 	{
 		ret = 0;
 #ifdef __DEF_IINCHIP_DBG__
 	printf("Fail[invalid ip,port]\r\n");
+#endif
+	}
+	return ret;
+}
+
+/**
+@brief	This function wait for client connection
+@return	1 for success else 0.
+*/ 
+uint8 accept(
+	SOCKET s	/**< the socket number */
+	)
+{
+	uint8 ret;
+#ifdef __DEF_IINCHIP_DBG__
+	printf("accept()\r\n");
+#endif
+	if (IINCHIP_READ(Sn_SR(s)) == SOCK_LISTEN)
+	{
+		while( IINCHIP_READ(Sn_SR(s)) != SOCK_ESTABLISHED );
+		/* ------- */
+		ret = 1;
+#ifdef __DEF_IINCHIP_DBG__
+	printf("status = %x\r\n",IINCHIP_READ(Sn_SR(s)));
+#endif
+	}
+	else
+	{
+		ret = 0;
+#ifdef __DEF_IINCHIP_DBG__
+	printf("Fail[not listening]\r\n");
 #endif
 	}
 	return ret;
@@ -211,12 +244,12 @@ uint16 send(
 		status = IINCHIP_READ(Sn_SR(s));
 		if ((status != SOCK_ESTABLISHED) && (status != SOCK_CLOSE_WAIT))
 		{
+#ifdef __DEF_IINCHIP_DBG__
+			printf("socket %d freesize(%d) empty or error\r\n", s, freesize);
+#endif
 			ret = 0; 
 			break;
 		}
-#ifdef __DEF_IINCHIP_DBG__
-		printf("socket %d freesize(%d) empty or error\r\n", s, freesize);
-#endif
 	} while (freesize < ret);
 
       // copy data
@@ -261,18 +294,25 @@ uint16 send(
 		
 @return	received data size for success else -1.
 */ 
-uint16 recv(
+int16 recv(
 	SOCKET s, 	/**< socket index */
 	uint8 * buf, 	/**< a pointer to copy the data to be received */
 	uint16 len	/**< the data size to be read */
 	)
 {
 	uint16 ret=0;
+	if( IINCHIP_READ(Sn_SR(s)) != SOCK_ESTABLISHED ){
+          printf("Bad status = %02x\n",IINCHIP_READ(Sn_SR(s)));
+          return -1;
+          }
+	int plen = getSn_RX_RSR(0);
+	if( plen <= 0 ) return 0; 
+
 #ifdef __DEF_IINCHIP_DBG__
 	printf("recv()\r\n");
 #endif
 
-
+	if( plen < len ) len=plen;
 	if ( len > 0 )
 	{
 		recv_data_processing(s, buf, len);
@@ -397,19 +437,23 @@ uint16 recvfrom(
 {
 	uint8 head[8];
 	uint16 data_len=0;
+        uint16 plen = getSn_RX_RSR(s);
 	uint16 ptr=0;
-    uint16 plen = getSn_RX_RSR(s);
+
         if(plen <=0 ) return 0;
+
 #ifdef __DEF_IINCHIP_DBG__
 	printf("recvfrom()\r\n");
 #endif
 
+        plen = getSn_RX_RSR(s);
 	if ( len > 0 )
 	{
    	ptr = IINCHIP_READ(Sn_RX_RD0(s));
    	ptr = ((ptr & 0x00ff) << 8) + IINCHIP_READ(Sn_RX_RD0(s) + 1);
+    
 #ifdef __DEF_IINCHIP_DBG__
-   	printf("ISR_RX: rd_ptr : %.4x\r\n", ptr);
+   	printf("ISR_RX: rd_ptr : %.4x size=%d\r\n", ptr, plen);
 #endif
    	switch (IINCHIP_READ(Sn_MR(s)) & 0x07)
    	{
@@ -427,8 +471,8 @@ uint16 recvfrom(
    			data_len = (data_len << 8) + head[7];
    			
 #ifdef __DEF_IINCHIP_DBG__
-   			printf("UDP msg arrived\r\n");
-   			printf("source Port : %d\r\n", *port);
+   			printf("UDP msg #%d arrived\r\n",data_len);
+   			printf("source Port : %u\r\n", *port);
    			printf("source IP : %d.%d.%d.%d\r\n", addr[0], addr[1], addr[2], addr[3]);
 #endif
 
@@ -498,7 +542,7 @@ uint16 recvfrom(
 
 uint16 igmpsend(SOCKET s, const uint8 * buf, uint16 len)
 {
-//	uint8 status=0;
+	uint8 status=0;
 //	uint8 isr=0;
 	uint16 ret=0;
 	
@@ -532,7 +576,7 @@ uint16 igmpsend(SOCKET s, const uint8 * buf, uint16 len)
 	   while ( (IINCHIP_READ(Sn_IR(s)) & Sn_IR_SEND_OK) != Sn_IR_SEND_OK ) 
 #endif
 		{
-			IINCHIP_READ(Sn_SR(s));
+			status = IINCHIP_READ(Sn_SR(s));
 #ifdef __DEF_IINCHIP_INT__
       	if (getISR(s) & Sn_IR_TIMEOUT)
 #else

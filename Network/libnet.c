@@ -133,6 +133,40 @@ int boucleServeur(int socket, void (*traitement)(int)){
             return -1;
         }
         traitement(socket_dialogue);
-        return 0;
     }
+    return 0;
+}
+
+int openTCPConnection(char *address, char *message, int port) {
+    int s = socket(AF_INET, SOCK_STREAM, 0);
+    
+    struct addrinfo precisions;
+    memset(&precisions, 0, sizeof precisions);
+    precisions.ai_family = AF_UNSPEC;
+    precisions.ai_socktype = SOCK_STREAM;
+    int statut = getaddrinfo(hote, service, &precisions, &origine);
+    
+    struct addrinfo *p;
+    for(p=origine, resultat=origine; p!=NULL; p=p->ai_next)
+    if(p->ai_family == AF_INET6){ resultat=p; break; }
+    
+    /*
+    //Création de la socket : s = file descriptor de la socket, AF_INET (socket internet), SOCK_DGRAM (datagramme, UDP, sans connexion)
+    if(s < 0){
+        //Test de la valeur de retour de la socket
+        perror("sendUDPBroadcast.socket");
+        exit(-1); 
+    }
+    struct sockaddr_in unicast_address;
+    //Creation structure adresse de destination
+    memset(&unicast_address, 0, sizeof(unicast_address));
+    //Mise à zéro de la structure d'adresse
+    unicast_address.sin_family = AF_INET;
+    unicast_address.sin_port = htons(port);
+    //Mise du port en ordre du réseau (big endian)
+    unicast_address.sin_addr.s_addr = inet_addr(address);
+    if(sendto(s, message, strlen(message), 0, (struct sockaddr *) &unicast_address, sizeof(unicast_address)) < 0 ) {
+        perror("sendUDPBroadcast.sendto");
+        exit(-1);
+    }*/
 }

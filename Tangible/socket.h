@@ -13,8 +13,9 @@ extern void close(SOCKET s); // Close socket
 extern uint8 connect(SOCKET s, uint8 * addr, uint16 port); // Establish TCP connection (Active connection)
 extern void disconnect(SOCKET s); // disconnect the connection
 extern uint8 listen(SOCKET s);	// Establish TCP connection (Passive connection)
+extern uint8 accept(SOCKET s);	// Wait for client (Passive connection)
 extern uint16 send(SOCKET s, const uint8 * buf, uint16 len); // Send data (TCP)
-extern uint16 recv(SOCKET s, uint8 * buf, uint16 len);	// Receive data (TCP)
+extern int16 recv(SOCKET s, uint8 * buf, uint16 len);	// Receive data (TCP)
 extern uint16 sendto(SOCKET s, const uint8 * buf, uint16 len, uint8 * addr, uint16 port); // Send data (UDP/IP RAW)
 extern uint16 recvfrom(SOCKET s, uint8 * buf, uint16 len, uint8 * addr, uint16  *port); // Receive data (UDP/IP RAW)
 
