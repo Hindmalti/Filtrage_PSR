@@ -1,4 +1,4 @@
-TARGET=testServeurHTTP
+TARGET=lanceServeurHTTP
 FLAGS= -Wall -pedantic -Wextra -I ../libs
 LIBS=-lpcap -lnet -lthrd -lpthread -L ../libs
 
@@ -14,4 +14,4 @@ compile:
 	gcc $(TARGET).c -o $(TARGET).out $(LIBS) $(FLAGS)
 
 kate:
-	kate makefile $(TARGET).c &
+	kate makefile *.c &

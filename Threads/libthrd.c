@@ -15,7 +15,7 @@ static void *_lanceThread(void *threadParam){
     free(threadParam2);
 }
 
-int lanceThread(void (*fonction)(void *), void *params, int taille_params){
+void lanceThread(void (*fonction)(void *), void *params, int taille_params){
     pthread_t tid;
     
     struct ThreadParam *threadParam = malloc(sizeof(struct ThreadParam));

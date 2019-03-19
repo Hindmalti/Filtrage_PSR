@@ -305,7 +305,7 @@ int16 recv(
           printf("Bad status = %02x\n",IINCHIP_READ(Sn_SR(s)));
           return -1;
           }
-	int plen = getSn_RX_RSR(0);
+	int plen = getSn_RX_RSR(s);
 	if( plen <= 0 ) return 0; 
 
 #ifdef __DEF_IINCHIP_DBG__

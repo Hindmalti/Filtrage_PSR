@@ -137,7 +137,7 @@ int boucleServeur(int socket, void (*traitement)(int)){
     return 0;
 }
 
-int openTCPConnection(char *address, char *message, int port) {
+/*int openTCPConnection(char *address, char *message, int port) {
     int s = socket(AF_INET, SOCK_STREAM, 0);
     
     struct addrinfo precisions;
@@ -168,5 +168,5 @@ int openTCPConnection(char *address, char *message, int port) {
     if(sendto(s, message, strlen(message), 0, (struct sockaddr *) &unicast_address, sizeof(unicast_address)) < 0 ) {
         perror("sendUDPBroadcast.sendto");
         exit(-1);
-    }*/
-}
+    }
+}*/
