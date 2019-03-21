@@ -14,5 +14,4 @@ char *getPage(char *request, char *path){
     }
     
     return "Error 404 : Page not found !";
-    
 }
