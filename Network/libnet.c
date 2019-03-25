@@ -10,11 +10,12 @@
 #include <stdio.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include "libnet.h"
+#include <libthrd.h>
 
+#define MAX_TCP_CONNEXION 10
 
 //Fonction permettant d'envoyer en broadcast un message 
-int sendUDPBroadcast(char *message, int port) {
+void sendUDPBroadcast(char *message, int port) {
     int broadcast_enable = 1;
     //Option broadcast ON
     int s = socket(AF_INET, SOCK_DGRAM, 0);
@@ -47,7 +48,7 @@ int sendUDPBroadcast(char *message, int port) {
 }
 
 
-int sendUDPUnicast(char *address, char *message, int port) {
+void sendUDPUnicast(char *address, char *message, int port) {
     int s = socket(AF_INET, SOCK_DGRAM, 0);
     //Création de la socket : s = file descriptor de la socket, AF_INET (socket internet), SOCK_DGRAM (datagramme, UDP, sans connexion)
     if(s < 0){
@@ -118,21 +119,21 @@ int initialisationServeur(char *service){
     /* Liberation de la structure d'informations */
     freeaddrinfo(origine);
 
-/* Taille de la queue d'attente */
+    /* Taille de la queue d'attente */
     statut = listen(s, MAX_TCP_CONNEXION);
     if(statut < 0)
         return -1;
     return s;
 }
 
-int boucleServeur(int socket, void (*traitement)(int)){
+int boucleServeur(int socket, void (*traitement)(void *)){
     while(1){
         int socket_dialogue = accept(socket, NULL, NULL);
         if(socket_dialogue < 0){
             perror("boucleServeur.accept");
             return -1;
         }
-        traitement(socket_dialogue);
+        lanceThread(traitement, (void *) (&socket_dialogue), sizeof(int));
     }
     return 0;
 }
