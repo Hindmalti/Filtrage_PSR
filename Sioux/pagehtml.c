@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <libnet.h>
 #include "pagehtml.h"
 
 #define NBR_INTERFACES 13
@@ -59,10 +60,11 @@ static void pageAccueilTable(char *page){
                 <th>Status</th>\n");
     
     // broadcast getStatus
-    /*char message[UDP_REQUETE_LENGTH];
+    char message[UDP_REQUETE_LENGTH];
     message[0] = 0x00;
     message[1] = 0x00;
-    sendUDPBroadcast(message, 2020);*/
+    //char *message = "0123456";
+    sendUDPBroadcast(message, UDP_REQUETE_LENGTH, 2020);
     
     for(int i=0; i<NBR_INTERFACES; i++){
         strcat(page, "<td>LOL</td>\n");

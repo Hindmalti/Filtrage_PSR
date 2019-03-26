@@ -6,7 +6,7 @@ XXXYYYYY YYYYYYYY (2 bytes)
 
 XXX : commandes
 * 000 getStatus : demande à l'interface son status (les Y sont ignorés)
-* 001 retStatus : l'interface retourne son status (Y = 00000 00000001 : mode éveillé | Y = 00000 00000000 : mode sommeil)
+* 001 retStatus : l'interface retourne son status (Y = ZZZZZ ZZZZZZZ1 : mode éveillé | Y = ZZZZZ ZZZZZZZ0 : mode sommeil & Z = identifiant de l'interface, numéro du groupe)
 * 010 setStatus : demande à l'interface de passer dans le mode sommeil ou éveillé (Y = 00000 00000001 : mode éveillé | Y = 00000 00000000 : mode sommeil)
 * 011 getCommande : demande à l'interface la commande en mémoire
 * 100 retCommande : l'interface retourne sa commande en mémoire (les Y représentent un pourcentage : Y = 11111 11111111 : 100%, Y = 00000 00000000 : 0%)

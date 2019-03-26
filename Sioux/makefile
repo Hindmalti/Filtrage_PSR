@@ -12,7 +12,7 @@ exec: compile
 	./$(TARGET).out
 
 compile:
-	gcc $(TARGET).c $(INCLUDES) -o $(TARGET).out $(LIBS) $(FLAGS)
+	gcc *.c -o $(TARGET).out $(LIBS) $(FLAGS)
 
 kate:
 	kate makefile *.c &

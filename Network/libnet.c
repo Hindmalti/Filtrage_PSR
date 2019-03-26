@@ -15,7 +15,7 @@
 #define MAX_TCP_CONNEXION 10
 
 //Fonction permettant d'envoyer en broadcast un message 
-void sendUDPBroadcast(char *message, int port) {
+void sendUDPBroadcast(char *message, int taille_message, int port) {
     int broadcast_enable = 1;
     //Option broadcast ON
     int s = socket(AF_INET, SOCK_DGRAM, 0);
@@ -30,25 +30,23 @@ void sendUDPBroadcast(char *message, int port) {
         perror("sendUDPBroadcast.setsockopt");
         exit(-1);
     }
+    
     struct sockaddr_in broadcast_address;
-    //Creation structure adresse de destination
     memset(&broadcast_address, 0, sizeof(broadcast_address));
-    //Mise à zéro de la structure d'adresse
     broadcast_address.sin_family = AF_INET;
     broadcast_address.sin_port = htons(port);
-    //Mise du port en ordre du réseau (big endian)
-    broadcast_address.sin_addr.s_addr = INADDR_BROADCAST;
-    //Adresse = 255.255.255.255 
-    if(sendto(s, message, strlen(message), 0, (struct sockaddr *) &broadcast_address,
+    broadcast_address.sin_addr.s_addr = INADDR_BROADCAST; //255.255.255.255
+    
+    //Envoie du message grâce à la socket
+    if(sendto(s, message, taille_message, 0, (struct sockaddr *) &broadcast_address,
             sizeof(broadcast_address)) < 0 ) {
         perror("sendUDPBroadcast.sendto");
         exit(-1);
     }
-    //Envoie du message grâce à la socket
 }
 
 
-void sendUDPUnicast(char *address, char *message, int port) {
+void sendUDPUnicast(char *address, char *message, int taille_message, int port) {
     int s = socket(AF_INET, SOCK_DGRAM, 0);
     //Création de la socket : s = file descriptor de la socket, AF_INET (socket internet), SOCK_DGRAM (datagramme, UDP, sans connexion)
     if(s < 0){
@@ -64,7 +62,7 @@ void sendUDPUnicast(char *address, char *message, int port) {
     unicast_address.sin_port = htons(port);
     //Mise du port en ordre du réseau (big endian)
     unicast_address.sin_addr.s_addr = inet_addr(address);
-    if(sendto(s, message, strlen(message), 0, (struct sockaddr *) &unicast_address, sizeof(unicast_address)) < 0 ) {
+    if(sendto(s, message, taille_message, 0, (struct sockaddr *) &unicast_address, sizeof(unicast_address)) < 0 ) {
         perror("sendUDPBroadcast.sendto");
         exit(-1);
     }

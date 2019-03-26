@@ -134,13 +134,11 @@ uint8 accept(
 #ifdef __DEF_IINCHIP_DBG__
 	printf("accept()\r\n");
 #endif
-	if (IINCHIP_READ(Sn_SR(s)) == SOCK_LISTEN)
+	if (IINCHIP_READ(Sn_SR(s)) == SOCK_ESTABLISHED)
 	{
-		while( IINCHIP_READ(Sn_SR(s)) != SOCK_ESTABLISHED );
-		/* ------- */
 		ret = 1;
 #ifdef __DEF_IINCHIP_DBG__
-	printf("status = %x\r\n",IINCHIP_READ(Sn_SR(s)));
+        printf("status = %x\r\n",IINCHIP_READ(Sn_SR(s)));
 #endif
 	}
 	else
