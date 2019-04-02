@@ -1,6 +1,6 @@
-TARGET=lanceServeurHTTP
+TARGET=lanceServeurs
 INCLUDES=pagehtml.c
-FLAGS=-Wall -pedantic -Wextra -I ../libs
+FLAGS=-Wall -Wextra -I ../libs
 LIBS=-lpcap -lnet -lthrd -lpthread -L ../libs
 
 all: compile

@@ -136,36 +136,30 @@ int boucleServeur(int socket, void (*traitement)(void *)){
     return 0;
 }
 
-/*int openTCPConnection(char *address, char *message, int port) {
-    int s = socket(AF_INET, SOCK_STREAM, 0);
+int openTCPClient(char *hote, int port) {
+    int s;
+    struct sockaddr_in adresse;
+    socklen_t taille = sizeof adresse;
     
-    struct addrinfo precisions;
-    memset(&precisions, 0, sizeof precisions);
-    precisions.ai_family = AF_UNSPEC;
-    precisions.ai_socktype = SOCK_STREAM;
-    int statut = getaddrinfo(hote, service, &precisions, &origine);
+    // creation socket
+    s = socket(PF_INET, SOCK_STREAM, 0);
+    if(s<0){ perror("connexionServeur.socket"); exit(-1); }
     
-    struct addrinfo *p;
-    for(p=origine, resultat=origine; p!=NULL; p=p->ai_next)
-    if(p->ai_family == AF_INET6){ resultat=p; break; }
-    
-    /*
-    //Création de la socket : s = file descriptor de la socket, AF_INET (socket internet), SOCK_DGRAM (datagramme, UDP, sans connexion)
-    if(s < 0){
-        //Test de la valeur de retour de la socket
-        perror("sendUDPBroadcast.socket");
-        exit(-1); 
-    }
-    struct sockaddr_in unicast_address;
-    //Creation structure adresse de destination
-    memset(&unicast_address, 0, sizeof(unicast_address));
-    //Mise à zéro de la structure d'adresse
-    unicast_address.sin_family = AF_INET;
-    unicast_address.sin_port = htons(port);
-    //Mise du port en ordre du réseau (big endian)
-    unicast_address.sin_addr.s_addr = inet_addr(address);
-    if(sendto(s, message, strlen(message), 0, (struct sockaddr *) &unicast_address, sizeof(unicast_address)) < 0 ) {
-        perror("sendUDPBroadcast.sendto");
-        exit(-1);
-    }
-}*/
+    // connexion
+    memset(&adresse, 0, sizeof(adresse));
+    adresse.sin_family=AF_INET;
+    adresse.sin_port = htons(port);
+    adresse.sin_addr.s_addr = inet_addr(hote);
+    if(connect(s,(struct sockaddr *)&adresse, taille)<0) return -1;
+    return s;
+}
+
+void sendTCP(int socket, char *message, int length_message){
+    if(length_message <= 0)
+        return;
+    write(socket, message, length_message);
+}
+
+int receiveTCP(int socket, char *message, int max_length){
+    return read(socket, message, max_length);
+}

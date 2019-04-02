@@ -1,10 +1,8 @@
 #include <stdio.h>
 #include <string.h>
-#include <libnet.h>
-#include "pagehtml.h"
+#include <unistd.h>
 
-#define NBR_INTERFACES 13
-#define UDP_REQUETE_LENGTH 2
+#include "comInterface.h"
 
 static char *code200(char *contentType){
     if(strcmp(contentType, "html") == 0)
@@ -39,7 +37,7 @@ static char *pageAccueilTitle(){
 
 static void pageAccueilTable(char *page){
     strcat(page, "<h2>Status des interfaces tangibles :</h2>\n \
-        <table class=\"table\">\n \
+        <table>\n \
             <tr>\n \
                 <th>Interface n°</th>\n \
                 <td>1</td>\n \
@@ -59,16 +57,44 @@ static void pageAccueilTable(char *page){
             <tr>\n \
                 <th>Status</th>\n");
     
+    // reset etats tableau
+    initTableauxInterface();
     // broadcast getStatus
-    char message[UDP_REQUETE_LENGTH];
-    message[0] = 0x00;
-    message[1] = 0x00;
-    //char *message = "0123456";
-    sendUDPBroadcast(message, UDP_REQUETE_LENGTH, 2020);
+    broadCastGetStatus();
+    // attente du retour des status des interfaces
+    usleep(1000000); // 1000 ms
     
     for(int i=0; i<NBR_INTERFACES; i++){
-        strcat(page, "<td>LOL</td>\n");
+        int etat = getEtatInterface(i);
+        if(etat == -1)
+            strcat(page, "<td class=\"not_responding\">NR</td>\n");
+        else if(etat == 0)
+            strcat(page, "<td class=\"sleep_mode\">SL</td>\n");
+        else if(etat == 1)
+            strcat(page, "<td class=\"listening_mode\">OK</td>\n");
+        else
+            strcat(page, "<td class=\"unknow_status\">S?</td>\n");
     }
+    
+    strcat(page, "</tr>\n \
+        <tr>\n \
+            <th>IP (172.26.145.XXX)</th>");
+    
+    for(int i=0; i<NBR_INTERFACES; i++){
+        int ip = getIpInterface(i);
+        if(ip == -1)
+            strcat(page, "<td>-</td>\n");
+        else if(ip <= 255){
+            strcat(page, "<td>");
+            char num[4];
+            sprintf(num, "%d", ip);
+            num[3] = '\0';
+            strcat(page, num);
+            strcat(page, "</td>\n");
+        }else
+            strcat(page, "<td>ERR</td>\n");
+    }
+    
     
     strcat(page, "</tr>\n \
         </table>\n");
@@ -87,7 +113,7 @@ static void pageAccueil(char *page){
 }
 
 static char *pageAccueilCSS(){
-    return ".table{\n \
+    return "table{\n \
             border: 1px solid black;\n \
             margin-left: 20px; \n \
         }\n \
@@ -95,6 +121,18 @@ static char *pageAccueilCSS(){
             border: solid 1px black;\n \
             padding: 5px;\n \
             text-align: left;\n \
+        }\n \
+        .not_responding{\n \
+            color: red\n \
+        }\n \
+        .sleep_mode{\n \
+            color: orange\n \
+        }\n \
+        .listening_mode{\n \
+            color: green\n \
+        }\n \
+        .unknow_status{\n \
+            color: black\n \
         }";
 }
 
