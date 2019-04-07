@@ -95,8 +95,8 @@ int main(void){
 
     // Ethernet
     uint8_t mac[] = {0x00, 0x20, 0x20, 0x20, 0x20, 0x08};
-    uint8_t ip[] = {172, 26, 145, 208};
-    uint8_t gateway[] = {172, 26, 145, 44};
+    uint8_t ip[] = {10, 0, 0, 2}; //{172, 26, 145, 208};
+    uint8_t gateway[] = {10, 0, 0, 1}; //{172, 26, 145, 44};
     uint8_t mask[] = {255, 255, 255, 0};
     ethernet_init(mac, ip, gateway, mask);
 
