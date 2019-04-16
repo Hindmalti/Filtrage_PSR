@@ -43,7 +43,7 @@ void broadCastGetStatus(){
 static void retStatus(int requete){
     int idInterf = ((requete & DATA_MASK) >> 1) - 1; //-1 : [1, 13] => [0, 12]
     int mode = requete & 0x01;
-    
+
     if(idInterf < 0 || idInterf > NBR_INTERFACES)
         return;
     etats[idInterf] = mode;

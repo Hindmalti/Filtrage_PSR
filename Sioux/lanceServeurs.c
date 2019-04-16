@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <stdint.h>
 #include <libnet.h>
 #include <libthrd.h>
 
@@ -23,9 +24,9 @@
 
 // ----- Serveur HTTP -----
 
-void gestionClientHTTP(int s){
+void gestionClientHTTP(int s, uint32_t ip_src){
     FILE *dialogue = fdopen(s, "a+");
-    if(dialogue==NULL){ perror("gestionClient.fdopen"); exit(-1); }
+    if(dialogue==NULL){ perror("gestionClientHTTP.fdopen"); exit(-1); }
     
     char line[BUFFER_SIZE];
     char *success = fgets(line, BUFFER_SIZE, dialogue);
@@ -55,13 +56,10 @@ void gestionClientHTTP(int s){
     return;
 }
 
-void _boucleServeurHTTP(void *args) { gestionClientHTTP(*((int *) args)); }
-void lanceServeurHTTP(void *args){ boucleServeur(*((int *) args), _boucleServeurHTTP);}
-
 // ----- Serveur TCP -----
-void gestionClientTCP(int s){
+void gestionClientTCP(int s, uint32_t ip_src){
     FILE *dialogue = fdopen(s, "a+");
-    if(dialogue==NULL){ perror("gestionClient.fdopen"); exit(-1); }
+    if(dialogue==NULL){ perror("gestionClientTCP.fdopen"); exit(-1); }
     
     char line[BUFFER_SIZE];
     char *success = fgets(line, BUFFER_SIZE, dialogue);
@@ -69,7 +67,9 @@ void gestionClientTCP(int s){
         fclose(dialogue);
         return;
     }
-    
+
+    printf("bbbbbbb :%u:\n", ip_src);
+
     int requete = (line[0] << 8) + line[1];
     traiteRequete(requete);
     
@@ -77,19 +77,21 @@ void gestionClientTCP(int s){
     return;
 }
 
-void _boucleServeurTCP(void *args) { gestionClientTCP(*((int *) args)); }
-void lanceServeurTCP(int socket){ boucleServeur(socket, _boucleServeurTCP); }
+void _boucleServeurHTTP(void *arg){
+    int sHTTP = *((int *) arg);
+    boucleServeur(sHTTP, gestionClientHTTP);
+}
 
 int main(int argc, char *argv[]) {
     // --- Serveur HTTP (sonde <-> PC) ---
     // Initialisation du serveur
     int sHTTP = initialisationServeur(argv[1]);
     // Lancement de la boucle d'ecoute
-    lanceThread(lanceServeurHTTP, (void *) (&sHTTP), sizeof(int));
+    lanceThread(_boucleServeurHTTP, (void *) (&sHTTP), sizeof(int));
     
     // --- Serveur TCP (sonde <-> interface) ---
     // Initialisation du serveur
     int sTCP = initialisationServeur(PORT_INTERFACE);
     // Lancement de la boucle d'ecoute
-    lanceServeurTCP(sTCP);
+    boucleServeur(sTCP, gestionClientTCP);
 }
