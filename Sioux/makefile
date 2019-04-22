@@ -1,5 +1,4 @@
 TARGET=lanceServeurs
-INCLUDES=pagehtml.c
 FLAGS=-Wall -Wextra -I ../libs
 LIBS=-lpcap -lnet -lthrd -lpthread -L ../libs
 
@@ -13,6 +12,3 @@ exec: compile
 
 compile:
 	gcc *.c -o $(TARGET).out $(LIBS) $(FLAGS)
-
-kate:
-	kate makefile *.c &

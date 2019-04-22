@@ -105,12 +105,7 @@ int main(void){
     next_socket_id++;
     int status = socket(sUDP, Sn_MR_UDP, DEFAULT_PORT, 0);
     if(status <= 0){ printf("Error: echec de la creation de la socket UDP\n"); }
-    
-    // socket TCP
-    /*SOCKET sTCP = next_socket_id;
-    next_socket_id++;
-    status = socket(sTCP, Sn_MR_TCP, DEFAULT_PORT, 0);
-    if(status <= 0){ printf("Error: echec de la creation de la socket TCP\n"); }*/
+ 
     
     int recu;
     while(1){
@@ -130,24 +125,8 @@ int main(void){
             uint16_t data16 = (data[0] << 8) + data[1];
             traitementTrame(data16, ip_src);
         }
-        
-        // Traitement TCP
-        /*status = listen(sTCP);
-        if(status <= 0){ printf("Error: echec du listen\n"); }
-        
-        int recu = accept(sTCP);
-        if(recu > 0){
-            uint8_t data[BUFFER_SIZE];
-            int i;
-            for(i=0; i<BUFFER_SIZE; i++)
-                data[i] = 0;
-            status = recv(sTCP, data, BUFFER_SIZE);
-            if(status <= 0){ printf("Error: echec de la reception TCP\n"); }
-            
-            printf("Recu :%s:\n", data);
-        }*/
-        
-        _delay_ms(100);
+
+           _delay_ms(100);
     }
     return 0;
 }

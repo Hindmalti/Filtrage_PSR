@@ -50,7 +50,7 @@ void gestionClientHTTP(int s, uint32_t ip_src){
         page[i] = '\0';
     
     getPage(request, path, page);
-    fprintf(dialogue, page);
+    fprintf(dialogue, "%s", page);
     
     fclose(dialogue);
     return;
@@ -83,11 +83,13 @@ void _boucleServeurHTTP(void *arg){
 }
 
 int main(int argc, char *argv[]) {
+    //On utilise pas argc
+    (void)argc;
     // --- Serveur HTTP (sonde <-> PC) ---
     // Initialisation du serveur
     int sHTTP = initialisationServeur(argv[1]);
     // Lancement de la boucle d'ecoute
-    lanceThread(_boucleServeurHTTP, (void *) (&sHTTP), sizeof(int));
+    lanceThread(lanceServeurHTTP, (void *) (&sHTTP), sizeof(sHTTP));
     
     // --- Serveur TCP (sonde <-> interface) ---
     // Initialisation du serveur
