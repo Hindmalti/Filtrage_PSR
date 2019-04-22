@@ -13,6 +13,7 @@ static void *_lanceThread(void *threadParam){
     threadParam2->fonction(threadParam2->params);
     free(threadParam2->params);
     free(threadParam2);
+    return NULL;
 }
 
 void lanceThread(void (*fonction)(void *), void *params, int taille_params){

@@ -1,4 +1,4 @@
-#ifndef LIBNET_H
-#define LIBNET_H
-int lanceThread(void (*fonction)(void *), void *params, int taille_params);
+#ifndef LIBTHRD_H
+#define LIBTHRD_H
+void lanceThread(void (*fonction)(void *), void *params, int taille_params);
 #endif

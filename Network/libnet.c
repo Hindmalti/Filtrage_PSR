@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include <libthrd.h>
+#include <stdint.h>
 
 #define MAX_TCP_CONNEXION 10
 
@@ -124,14 +124,25 @@ int initialisationServeur(char *service){
     return s;
 }
 
-int boucleServeur(int socket, void (*traitement)(void *)){
+int boucleServeur(int socket, void (*traitement)(int, uint32_t)){
     while(1){
-        int socket_dialogue = accept(socket, NULL, NULL);
+        struct sockaddr_in ip_src;
+        socklen_t ip_len = sizeof(struct sockaddr_in);
+        int socket_dialogue = accept(socket, (struct sockaddr *) &ip_src, &ip_len);
         if(socket_dialogue < 0){
             perror("boucleServeur.accept");
             return -1;
         }
-        lanceThread(traitement, (void *) (&socket_dialogue), sizeof(int));
+        
+        //int status = getpeername(socket_dialogue, (struct sockaddr *) &ip_src, &ip_len);
+        /*if(status < 0)
+            perror("getpeername");*/
+        char char_ip[20];
+        strcpy(char_ip, inet_ntoa(ip_src.sin_addr));
+
+        printf("aaaaa :%s:\n", char_ip);
+
+        traitement(socket_dialogue, 0);
     }
     return 0;
 }
