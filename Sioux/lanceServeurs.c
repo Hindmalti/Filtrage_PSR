@@ -25,6 +25,7 @@
 // ----- Serveur HTTP -----
 
 void gestionClientHTTP(int s, uint32_t ip_src){
+    (void)ip_src;
     FILE *dialogue = fdopen(s, "a+");
     if(dialogue==NULL){ perror("gestionClientHTTP.fdopen"); exit(-1); }
     
@@ -87,9 +88,9 @@ int main(int argc, char *argv[]) {
     (void)argc;
     // --- Serveur HTTP (sonde <-> PC) ---
     // Initialisation du serveur
-    int sHTTP = initialisationServeur(argv[1]);
+     int sHTTP = initialisationServeur(argv[1]);
     // Lancement de la boucle d'ecoute
-    lanceThread(lanceServeurHTTP, (void *) (&sHTTP), sizeof(sHTTP));
+    lanceThread(_boucleServeurHTTP, (void *) (&sHTTP), sizeof(sHTTP));
     
     // --- Serveur TCP (sonde <-> interface) ---
     // Initialisation du serveur
