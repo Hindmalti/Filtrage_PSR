@@ -12,7 +12,7 @@
 #define IPV4_SIZE 4
 #define DEFAULT_PORT 2020
 
-#define BUFFER_SIZE 2 // toutes les trames font 2 octets seulement
+#define BUFFER_SIZE 200 // toutes les trames font 2 octets seulement
 #define INTERFACE_ID 8
 
 #define COMMANDE_MASK 0xE000
@@ -91,12 +91,13 @@ void traitementTrame(uint16_t data, uint8_t *ip_src){
 }
 
 int main(void){
+    uint8_t data[BUFFER_SIZE];
     init_printf();
 
     // Ethernet
     uint8_t mac[] = {0x00, 0x20, 0x20, 0x20, 0x20, 0x08};
-    uint8_t ip[] = {10, 0, 0, 2}; //{172, 26, 145, 208};
-    uint8_t gateway[] = {10, 0, 0, 1}; //{172, 26, 145, 44};
+    uint8_t ip[] = {172, 26, 145, 208}; //{10, 0, 0, 2};
+    uint8_t gateway[] = {172, 26, 145, 44}; //{10, 0, 0, 1};
     uint8_t mask[] = {255, 255, 255, 0};
     ethernet_init(mac, ip, gateway, mask);
 
@@ -111,7 +112,6 @@ int main(void){
     while(1){
         // Traitement UDP
         uint8_t ip_src[4];
-        uint8_t data[BUFFER_SIZE];
         uint16_t port;
         int i;
         for(i=0; i<BUFFER_SIZE; i++)
@@ -126,7 +126,7 @@ int main(void){
             traitementTrame(data16, ip_src);
         }
 
-           _delay_ms(100);
+        _delay_ms(100);
     }
     return 0;
 }

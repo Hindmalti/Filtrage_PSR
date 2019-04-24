@@ -10,7 +10,7 @@ export CFLAGS = -Wall -Wextra -pedantic
 # Constantes liees au projet
 #
 
-DIRS = Threads Network Sioux
+DIRS = Threads Network Sioux Tangible
 
 #
 # La cible generale

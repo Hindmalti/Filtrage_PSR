@@ -70,7 +70,7 @@ void sendUDPUnicast(char *address, char *message, int taille_message, int port) 
 
 
 // Fonction permettant de créer le serveur 
-int initialisationServeur(char *service){
+int initialisationServeurTCP(char *service){
     struct addrinfo precisions, *resultat, *origine;
     int statut;
     int s;
@@ -124,25 +124,52 @@ int initialisationServeur(char *service){
     return s;
 }
 
-int boucleServeur(int socket, void (*traitement)(int, uint32_t)){
+int socketVersNom(int s,char *nom){
+    struct sockaddr_storage adresse;
+    struct sockaddr *padresse = (struct sockaddr *) &adresse;
+    socklen_t taille = sizeof adresse;
+    int statut;
+
+    /* Recupere l'adresse de la socket distante */
+    statut=getpeername(s, padresse, &taille);
+    if(statut<0){
+        perror("socketVersNom.getpeername");
+        exit(-1);
+    }
+
+    /* Recupere le nom de la machine */
+    void *ip;
+    int taille_nom;
+    if(padresse->sa_family == AF_INET){
+        struct sockaddr_in *ipv4 = (struct sockaddr_in *) padresse;
+        ip = (void *) &ipv4->sin_addr;
+        taille_nom = INET_ADDRSTRLEN;
+    }
+    if(padresse->sa_family == AF_INET6){
+        struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *) padresse;
+        ip = (void *)&ipv6->sin6_addr;
+        taille_nom = INET6_ADDRSTRLEN;
+    }
+    inet_ntop(padresse->sa_family, ip, nom, taille_nom);
+    return 0;
+}
+
+int boucleServeurTCP(int socket, void (*traitement)(int, char *)){
     while(1){
-        struct sockaddr_in ip_src;
-        socklen_t ip_len = sizeof(struct sockaddr_in);
-        int socket_dialogue = accept(socket, (struct sockaddr *) &ip_src, &ip_len);
+        struct sockaddr ip_src;
+        socklen_t ip_len = sizeof(struct sockaddr);
+        int socket_dialogue = accept(socket, &ip_src, &ip_len);
         if(socket_dialogue < 0){
             perror("boucleServeur.accept");
             return -1;
         }
-        
-        //int status = getpeername(socket_dialogue, (struct sockaddr *) &ip_src, &ip_len);
-        /*if(status < 0)
-            perror("getpeername");*/
+
         char char_ip[20];
-        strcpy(char_ip, inet_ntoa(ip_src.sin_addr));
+        int status = socketVersNom(socket_dialogue, char_ip);
+        if(status < 0)
+            perror("socketVersNom");
 
-        printf("aaaaa :%s:\n", char_ip);
-
-        traitement(socket_dialogue, 0);
+        traitement(socket_dialogue, char_ip);
     }
     return 0;
 }

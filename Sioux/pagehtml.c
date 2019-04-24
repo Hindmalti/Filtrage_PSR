@@ -78,21 +78,17 @@ static void pageAccueilTable(char *page){
     
     strcat(page, "</tr>\n \
         <tr>\n \
-            <th>IP (172.26.145.XXX)</th>");
+            <th>IP</th>");
     
     for(int i=0; i<NBR_INTERFACES; i++){
-        int ip = getIpInterface(i);
-        if(ip == -1)
+        char *ip = getIpInterface(i);
+        if(ip[0] == '\0')
             strcat(page, "<td>-</td>\n");
-        else if(ip <= 255){
+        else {
             strcat(page, "<td>");
-            char num[4];
-            sprintf(num, "%d", ip);
-            num[3] = '\0';
-            strcat(page, num);
+            strcat(page, ip);
             strcat(page, "</td>\n");
-        }else
-            strcat(page, "<td>ERR</td>\n");
+        }
     }
     
     
@@ -120,7 +116,7 @@ static char *pageAccueilCSS(){
         th, td{\n \
             border: solid 1px black;\n \
             padding: 5px;\n \
-            text-align: left;\n \
+            text-align: center;\n \
         }\n \
         .not_responding{\n \
             color: red\n \

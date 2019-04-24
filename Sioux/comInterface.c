@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <libnet.h>
 
 #include "comInterface.h"
@@ -18,18 +19,21 @@
 
 #define REQUETE_LENGTH 2
 
+#define IP_ADDR_CHAR_LENGTH 50
+
 int etats[NBR_INTERFACES];
-int ips[NBR_INTERFACES];
+char ips[NBR_INTERFACES][IP_ADDR_CHAR_LENGTH];
 void initTableauxInterface(){
     for(int i=0; i<NBR_INTERFACES; i++){
         etats[i] = -1;
-        ips[i] = -1;
+        for(int j=0; j<IP_ADDR_CHAR_LENGTH; j++)
+            ips[i][j] = '\0';
     }
 }
 int getEtatInterface(int index){
     return etats[index];
 }
-int getIpInterface(int index){
+char *getIpInterface(int index){
     return ips[index];
 }
 
@@ -40,17 +44,20 @@ void broadCastGetStatus(){
     sendUDPBroadcast(message, REQUETE_LENGTH, 2020);
 }
 
-static void retStatus(int requete){
+static void retStatus(int requete, char *ip_src){
     int idInterf = ((requete & DATA_MASK) >> 1) - 1; //-1 : [1, 13] => [0, 12]
     int mode = requete & 0x01;
 
+    // sauvegarde etat
     if(idInterf < 0 || idInterf > NBR_INTERFACES)
         return;
     etats[idInterf] = mode;
-    //TODO recup ip ips[idInterf] = ip_src[3];
+
+    // sauvegarde addr ip
+    strcpy(ips[idInterf], ip_src);
 }
 
-void traiteRequete(int requete){
+void traiteRequete(int requete, char *ip_src){
     // determination de la commande
     int commandeId = (requete & COMMANDE_MASK) >> 13;
     
@@ -59,7 +66,7 @@ void traiteRequete(int requete){
             // on ignore
             break;
         case RET_STATUS:
-            retStatus(requete);
+            retStatus(requete, ip_src);
             break;
         case SET_STATUS:
             // on ignore

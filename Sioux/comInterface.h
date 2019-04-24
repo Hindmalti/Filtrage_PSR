@@ -5,8 +5,8 @@
 
 void initTableauxInterface();
 int getEtatInterface(int index);
-int getIpInterface(int index);
+char *getIpInterface(int index);
 void broadCastGetStatus();
-void traiteRequete(int requete);
+void traiteRequete(int requete, char *ip_src);
 
 #endif

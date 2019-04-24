@@ -24,8 +24,9 @@
 
 // ----- Serveur HTTP -----
 
-void gestionClientHTTP(int s, uint32_t ip_src){
-    (void)ip_src;
+void gestionClientHTTP(int s, char *ip_src){
+    (void) ip_src;
+
     FILE *dialogue = fdopen(s, "a+");
     if(dialogue==NULL){ perror("gestionClientHTTP.fdopen"); exit(-1); }
     
@@ -58,7 +59,7 @@ void gestionClientHTTP(int s, uint32_t ip_src){
 }
 
 // ----- Serveur TCP -----
-void gestionClientTCP(int s, uint32_t ip_src){
+void gestionClientTCP(int s, char *ip_src){
     FILE *dialogue = fdopen(s, "a+");
     if(dialogue==NULL){ perror("gestionClientTCP.fdopen"); exit(-1); }
     
@@ -69,10 +70,8 @@ void gestionClientTCP(int s, uint32_t ip_src){
         return;
     }
 
-    printf("bbbbbbb :%u:\n", ip_src);
-
     int requete = (line[0] << 8) + line[1];
-    traiteRequete(requete);
+    traiteRequete(requete, ip_src);
     
     fclose(dialogue);
     return;
@@ -80,21 +79,21 @@ void gestionClientTCP(int s, uint32_t ip_src){
 
 void _boucleServeurHTTP(void *arg){
     int sHTTP = *((int *) arg);
-    boucleServeur(sHTTP, gestionClientHTTP);
+    boucleServeurTCP(sHTTP, gestionClientHTTP);
 }
 
 int main(int argc, char *argv[]) {
     //On utilise pas argc
-    (void)argc;
+    (void) argc;
     // --- Serveur HTTP (sonde <-> PC) ---
     // Initialisation du serveur
-     int sHTTP = initialisationServeur(argv[1]);
+    int sHTTP = initialisationServeurTCP(argv[1]);
     // Lancement de la boucle d'ecoute
     lanceThread(_boucleServeurHTTP, (void *) (&sHTTP), sizeof(sHTTP));
     
     // --- Serveur TCP (sonde <-> interface) ---
     // Initialisation du serveur
-    int sTCP = initialisationServeur(PORT_INTERFACE);
+    int sTCP = initialisationServeurTCP(PORT_INTERFACE);
     // Lancement de la boucle d'ecoute
-    boucleServeur(sTCP, gestionClientTCP);
+    boucleServeurTCP(sTCP, gestionClientTCP);
 }

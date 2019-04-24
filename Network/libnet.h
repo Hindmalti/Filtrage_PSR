@@ -6,8 +6,8 @@
 int sendUDPBroadcast(char *message, int taille_message, int port);
 int sendUDPUnicast(char *address, char *message, int taille_message, int port);
 
-int initialisationServeur(char *service);
-int boucleServeur(int socket, void (*traitement)(int, uint32_t));
+int initialisationServeurTCP(char *service);
+int boucleServeurTCP(int socket, void (*traitement)(int, char *));
 
 int openTCPClient(char *hote, int port);
 void sendTCP(int socket, char *message, int length_message);
