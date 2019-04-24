@@ -98,11 +98,11 @@ uint8 listen(
 	)
 {
 	uint8 ret;
+	if (IINCHIP_READ(Sn_SR(s)) == SOCK_INIT)
+	{
 #ifdef __DEF_IINCHIP_DBG__
 	printf("listen()\r\n");
 #endif
-	if (IINCHIP_READ(Sn_SR(s)) == SOCK_INIT)
-	{
 		IINCHIP_WRITE(Sn_CR(s),Sn_CR_LISTEN);
 		/* +20071122[chungs]:wait to process the command... */
 		while( IINCHIP_READ(Sn_CR(s)) );
@@ -115,9 +115,6 @@ uint8 listen(
 	else
 	{
 		ret = 0;
-#ifdef __DEF_IINCHIP_DBG__
-	printf("Fail[invalid ip,port]\r\n");
-#endif
 	}
 	return ret;
 }
@@ -131,22 +128,13 @@ uint8 accept(
 	)
 {
 	uint8 ret;
-#ifdef __DEF_IINCHIP_DBG__
-	printf("accept()\r\n");
-#endif
 	if (IINCHIP_READ(Sn_SR(s)) == SOCK_ESTABLISHED)
 	{
 		ret = 1;
-#ifdef __DEF_IINCHIP_DBG__
-        printf("status = %x\r\n",IINCHIP_READ(Sn_SR(s)));
-#endif
 	}
 	else
 	{
 		ret = 0;
-#ifdef __DEF_IINCHIP_DBG__
-	printf("Fail[not listening]\r\n");
-#endif
 	}
 	return ret;
 }
@@ -300,7 +288,7 @@ int16 recv(
 {
 	uint16 ret=0;
 	if( IINCHIP_READ(Sn_SR(s)) != SOCK_ESTABLISHED ){
-          printf("Bad status = %02x\n",IINCHIP_READ(Sn_SR(s)));
+          printf("Bad status = %02x\n", IINCHIP_READ(Sn_SR(s)));
           return -1;
           }
 	int plen = getSn_RX_RSR(s);

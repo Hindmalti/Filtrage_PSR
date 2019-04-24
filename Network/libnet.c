@@ -76,7 +76,7 @@ static int socketVersNom(int s,char *nom){
     int statut;
 
     /* Recupere l'adresse de la socket distante */
-    statut=getpeername(s, padresse, &taille);
+    statut = getpeername(s, padresse, &taille);
     if(statut<0){
         perror("socketVersNom.getpeername");
         exit(-1);

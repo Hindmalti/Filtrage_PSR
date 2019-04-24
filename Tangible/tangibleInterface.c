@@ -28,15 +28,18 @@
 
 #define MODE_EVEIL 1
 #define MODE_SOMMEIL 0
-uint8_t status = MODE_EVEIL;
+uint8_t status_interf = MODE_EVEIL;
 
 uint16_t commande = 0;
-uint8_t next_socket_id = 1;
+uint8_t next_socket_id = 0;
 
 void sendTCP(SOCKET s, uint16_t message, uint8_t *ip_dest){
-    // connect
-    int status = connect(s, ip_dest, DEFAULT_PORT);
-    if(status <= 0){ printf("Error: echec du connect\n"); }
+    // connect ?
+    int status;
+    if(ip_dest != NULL){
+        status = connect(s, ip_dest, DEFAULT_PORT);
+        if(status <= 0){ printf("Error: echec du connect\n"); }
+    }
     
     // send
     uint8_t buff[TRAME_SIZE];
@@ -45,8 +48,10 @@ void sendTCP(SOCKET s, uint16_t message, uint8_t *ip_dest){
     status = send(s, buff, TRAME_SIZE);
     if(status <= 0){ printf("Error: echec du send\n"); }
     
-    // disconnect
-    disconnect(s);
+    // disconnect ?
+    if(ip_dest != NULL){
+        disconnect(s);
+    }
 }
 
 void traitementTrame(uint16_t data, uint8_t *ip_src, SOCKET sTCP){
@@ -58,16 +63,16 @@ void traitementTrame(uint16_t data, uint8_t *ip_src, SOCKET sTCP){
             sendTCP(sTCP,
                 (RET_STATUS << 13)
                 | (INTERFACE_ID << 1)
-                | status, ip_src);
+                | status_interf, ip_src);
             break;
         case RET_STATUS:
             // on ignore
             break;
         case SET_STATUS:
             if((data & DATA_MASK) == MODE_EVEIL)
-                status = MODE_EVEIL;
+                status_interf = MODE_EVEIL;
             else if((data & DATA_MASK) == MODE_SOMMEIL)
-                status = MODE_SOMMEIL;
+                status_interf = MODE_SOMMEIL;
             else
                 printf("Erreur setStatus : status inconnu :%d:", data & DATA_MASK);
             break;
@@ -109,12 +114,21 @@ int main(void){
     next_socket_id++;
     status = socket(sTCP, Sn_MR_TCP, DEFAULT_PORT, 0);
     if(status <= 0){ printf("Error: echec de la creation de la socket reponse TCP\n"); }
+
+    // socket TCP listen
+    SOCKET sTCPlisten = next_socket_id;
+    next_socket_id++;
+    status = socket(sTCPlisten, Sn_MR_TCP, DEFAULT_PORT, 0);
+    if(status <= 0){ printf("Error: echec de la creation de la socket reponse TCP\n"); }
+    status = listen(sTCPlisten);
+    if(status <= 0){ printf("Error: echec du listen TCP\n"); }
     
     int recu;
     while(1){
-        // Traitement UDP
         uint8_t data[BUFFER_SIZE];
         uint8_t ip_src[4];
+
+        // Traitement UDP
         uint16_t port;
         int i;
         for(i=0; i<BUFFER_SIZE; i++)
@@ -127,6 +141,24 @@ int main(void){
             
             uint16_t data16 = (data[0] << 8) + data[1];
             traitementTrame(data16, ip_src, sTCP);
+        }
+
+        // Traitement TCP TODO tester
+        status = accept(sTCPlisten);
+        if(status > 0){
+            // reception
+            int i;
+            for(i=0; i<BUFFER_SIZE; i++)
+                data[i] = 0;
+            recu = recv(sTCPlisten, data, BUFFER_SIZE);
+            if(recu > 0 && recu <= 4){
+                printf("IP :%d.%d.%d.%d:\n", ip_src[0], ip_src[1], ip_src[2], ip_src[3]);
+                printf("Recu : 0x%02x 0x%02x\n", data[0], data[1]);
+
+                // traitement
+                uint16_t data16 = (data[0] << 8) + data[1];
+                traitementTrame(data16, NULL, sTCP);
+            }
         }
 
         _delay_ms(100);
