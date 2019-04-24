@@ -77,23 +77,38 @@ void gestionClientTCP(int s, char *ip_src){
     return;
 }
 
+// ----- Serveur UDP -----
+void gestionClientUDP(unsigned char *message, int message_length, char *ip_src){
+    if(message_length < MIN_REQ_BYTE)
+        return;
+
+    int requete = (message[0] << 8) + message[1];
+    traiteRequete(requete, ip_src);
+}
+
+
 void _boucleServeurHTTP(void *arg){
     int sHTTP = *((int *) arg);
     boucleServeurTCP(sHTTP, gestionClientHTTP);
 }
 
+void _boucleServeurUDP(void *arg){
+    int sUDP = *((int *) arg);
+    boucleServeurUDP(sUDP, gestionClientUDP);
+}
+
 int main(int argc, char *argv[]) {
-    //On utilise pas argc
     (void) argc;
+
     // --- Serveur HTTP (sonde <-> PC) ---
-    // Initialisation du serveur
     int sHTTP = initialisationServeurTCP(argv[1]);
-    // Lancement de la boucle d'ecoute
     lanceThread(_boucleServeurHTTP, (void *) (&sHTTP), sizeof(sHTTP));
+
+    // --- Serveur UDP (sonde <-> interface) ---
+    int sUDP = initialisationServeurUDP(PORT_INTERFACE);
+    lanceThread(_boucleServeurUDP, (void *) (&sUDP), sizeof(sUDP));
     
     // --- Serveur TCP (sonde <-> interface) ---
-    // Initialisation du serveur
     int sTCP = initialisationServeurTCP(PORT_INTERFACE);
-    // Lancement de la boucle d'ecoute
     boucleServeurTCP(sTCP, gestionClientTCP);
 }

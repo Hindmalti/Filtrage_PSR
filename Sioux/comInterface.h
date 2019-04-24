@@ -2,6 +2,7 @@
 #define COM_INTERFACE
 
 #define NBR_INTERFACES 13
+#define MIN_REQ_BYTE 2
 
 void initTableauxInterface();
 int getEtatInterface(int index);

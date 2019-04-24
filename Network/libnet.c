@@ -13,6 +13,7 @@
 #include <stdint.h>
 
 #define MAX_TCP_CONNEXION 10
+#define BUFFER_SIZE 1024
 
 //Fonction permettant d'envoyer en broadcast un message 
 void sendUDPBroadcast(char *message, int taille_message, int port) {
@@ -68,8 +69,37 @@ void sendUDPUnicast(char *address, char *message, int taille_message, int port) 
     }
 }
 
+static int socketVersNom(int s,char *nom){
+    struct sockaddr_storage adresse;
+    struct sockaddr *padresse = (struct sockaddr *) &adresse;
+    socklen_t taille = sizeof adresse;
+    int statut;
 
-// Fonction permettant de créer le serveur 
+    /* Recupere l'adresse de la socket distante */
+    statut=getpeername(s, padresse, &taille);
+    if(statut<0){
+        perror("socketVersNom.getpeername");
+        exit(-1);
+    }
+
+    /* Recupere le nom de la machine */
+    void *ip;
+    int taille_nom;
+    if(padresse->sa_family == AF_INET){
+        struct sockaddr_in *ipv4 = (struct sockaddr_in *) padresse;
+        ip = (void *) &ipv4->sin_addr;
+        taille_nom = INET_ADDRSTRLEN;
+    }
+    if(padresse->sa_family == AF_INET6){
+        struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *) padresse;
+        ip = (void *)&ipv6->sin6_addr;
+        taille_nom = INET6_ADDRSTRLEN;
+    }
+    inet_ntop(padresse->sa_family, ip, nom, taille_nom);
+    return 0;
+}
+
+// Fonction permettant de créer le serveur TCP
 int initialisationServeurTCP(char *service){
     struct addrinfo precisions, *resultat, *origine;
     int statut;
@@ -124,36 +154,6 @@ int initialisationServeurTCP(char *service){
     return s;
 }
 
-int socketVersNom(int s,char *nom){
-    struct sockaddr_storage adresse;
-    struct sockaddr *padresse = (struct sockaddr *) &adresse;
-    socklen_t taille = sizeof adresse;
-    int statut;
-
-    /* Recupere l'adresse de la socket distante */
-    statut=getpeername(s, padresse, &taille);
-    if(statut<0){
-        perror("socketVersNom.getpeername");
-        exit(-1);
-    }
-
-    /* Recupere le nom de la machine */
-    void *ip;
-    int taille_nom;
-    if(padresse->sa_family == AF_INET){
-        struct sockaddr_in *ipv4 = (struct sockaddr_in *) padresse;
-        ip = (void *) &ipv4->sin_addr;
-        taille_nom = INET_ADDRSTRLEN;
-    }
-    if(padresse->sa_family == AF_INET6){
-        struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *) padresse;
-        ip = (void *)&ipv6->sin6_addr;
-        taille_nom = INET6_ADDRSTRLEN;
-    }
-    inet_ntop(padresse->sa_family, ip, nom, taille_nom);
-    return 0;
-}
-
 int boucleServeurTCP(int socket, void (*traitement)(int, char *)){
     while(1){
         struct sockaddr ip_src;
@@ -170,6 +170,75 @@ int boucleServeurTCP(int socket, void (*traitement)(int, char *)){
             perror("socketVersNom");
 
         traitement(socket_dialogue, char_ip);
+    }
+    return 0;
+}
+
+int initialisationServeurUDP(char *service){
+    struct addrinfo precisions, *resultat, *origine;
+    int statut;
+    int s;
+
+    /* Construction de la structure adresse */
+    memset(&precisions, 0, sizeof precisions);
+    precisions.ai_family = AF_UNSPEC;
+    precisions.ai_socktype = SOCK_DGRAM;
+    precisions.ai_flags = AI_PASSIVE;
+    statut = getaddrinfo(NULL, service, &precisions, &origine);
+    if(statut < 0){ perror("initialisationSocketUDP.getaddrinfo"); exit(EXIT_FAILURE); }
+
+    struct addrinfo *p;
+    for(p=origine, resultat=origine; p!=NULL; p=p->ai_next)
+    if(p->ai_family == AF_INET6){ resultat=p; break; }
+
+    /* Creation d'une socket */
+    s = socket(resultat->ai_family, resultat->ai_socktype, resultat->ai_protocol);
+    if(s<0){ perror("initialisationSocketUDP.socket"); exit(EXIT_FAILURE); }
+
+    /* Options utiles */
+    int vrai = 1;
+    if(setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &vrai, sizeof(vrai)) < 0){
+        perror("initialisationServeurUDPgenerique.setsockopt (REUSEADDR)");
+        exit(-1);
+    }
+
+    /* Specification de l'adresse de la socket */
+    statut = bind(s, resultat->ai_addr, resultat->ai_addrlen);
+    if(statut < 0) { perror("initialisationServeurUDP.bind"); exit(-1); }
+
+    /* Liberation de la structure d'informations */
+    freeaddrinfo(origine);
+
+    return s;
+}
+
+int boucleServeurUDP(int s, void (*traitement)(unsigned char *, int, char *)){
+    while(1){
+        struct sockaddr_storage adresse;
+        struct sockaddr *padresse = (struct sockaddr *) &adresse;
+        socklen_t taille=sizeof(adresse);
+        unsigned char message[BUFFER_SIZE];
+
+        int nboctets = recvfrom(s, message, BUFFER_SIZE, 0, (struct sockaddr *) padresse, &taille);
+        if(nboctets < 0) return -1;
+
+        /* Recupere le nom de la machine */
+        char char_ip[20];
+        void *ip;
+        int taille_nom;
+        if(padresse->sa_family == AF_INET){
+            struct sockaddr_in *ipv4 = (struct sockaddr_in *) padresse;
+            ip = (void *) &ipv4->sin_addr;
+            taille_nom = INET_ADDRSTRLEN;
+        }
+        if(padresse->sa_family == AF_INET6){
+            struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *) padresse;
+            ip = (void *)&ipv6->sin6_addr;
+            taille_nom = INET6_ADDRSTRLEN;
+        }
+        inet_ntop(padresse->sa_family, ip, char_ip, taille_nom);
+
+        traitement(message, nboctets, char_ip);
     }
     return 0;
 }
