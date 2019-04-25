@@ -69,6 +69,7 @@ void sendUDPUnicast(char *address, char *message, int taille_message, int port) 
     }
 }
 
+// Retourne l'adresse ip d'une connexion active
 static int socketVersNom(int s,char *nom){
     struct sockaddr_storage adresse;
     struct sockaddr *padresse = (struct sockaddr *) &adresse;
@@ -154,8 +155,10 @@ int initialisationServeurTCP(char *service){
     return s;
 }
 
+// Accepte toutes les connexions au serveur TCP et execute la fonction en argument
 int boucleServeurTCP(int socket, void (*traitement)(int, char *)){
     while(1){
+	// accept connection
         struct sockaddr ip_src;
         socklen_t ip_len = sizeof(struct sockaddr);
         int socket_dialogue = accept(socket, &ip_src, &ip_len);
@@ -164,16 +167,19 @@ int boucleServeurTCP(int socket, void (*traitement)(int, char *)){
             return -1;
         }
 
+	// get ip addr
         char char_ip[20];
         int status = socketVersNom(socket_dialogue, char_ip);
         if(status < 0)
             perror("socketVersNom");
 
+	// callback function
         traitement(socket_dialogue, char_ip);
     }
     return 0;
 }
 
+// CrÃation d'un serveur UDP
 int initialisationServeurUDP(char *service){
     struct addrinfo precisions, *resultat, *origine;
     int statut;
@@ -212,6 +218,7 @@ int initialisationServeurUDP(char *service){
     return s;
 }
 
+// Reception des messages UDP et execute la fonction passee en argument
 int boucleServeurUDP(int s, void (*traitement)(unsigned char *, int, char *)){
     while(1){
         struct sockaddr_storage adresse;
@@ -243,6 +250,7 @@ int boucleServeurUDP(int s, void (*traitement)(unsigned char *, int, char *)){
     return 0;
 }
 
+// Initialise un client TCP
 int openTCPClient(char *hote, int port) {
     int s;
     struct sockaddr_in adresse;
@@ -261,12 +269,14 @@ int openTCPClient(char *hote, int port) {
     return s;
 }
 
+// Envoie un message TCP sur une connexion active
 void sendTCP(int socket, char *message, int length_message){
     if(length_message <= 0)
         return;
     write(socket, message, length_message);
 }
 
+// Recois un message TCP sur une connexion active
 int receiveTCP(int socket, char *message, int max_length){
     return read(socket, message, max_length);
 }
