@@ -19,5 +19,6 @@ $(TARGET).a: $(TARGET).o
 	#Création libthrd.a à partir de libthrd.o
 	$(CLIB) $@ $+
 	#Copie dans le dossier libs
+	mkdir ../libs -p
 	cp $(TARGET).a ../libs/$(TARGET).a
 	cp $(TARGET).h ../libs/$(TARGET).h

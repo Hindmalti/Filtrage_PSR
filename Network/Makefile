@@ -15,5 +15,6 @@ $(TARGET).o: $(TARGET).c $(TARGET).h
 $(TARGET).a: $(TARGET).o
 	rm -rf $@
 	$(CLIB) $@ $+
+	mkdir ../libs -p
 	cp $(TARGET).a ../libs/$(TARGET).a
 	cp $(TARGET).h ../libs/$(TARGET).h

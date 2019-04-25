@@ -12,7 +12,7 @@
 #define IPV4_SIZE 4
 #define DEFAULT_PORT 2020
 
-#define BUFFER_SIZE 4
+#define BUFFER_SIZE 100
 #define TRAME_SIZE 2
 #define INTERFACE_ID 8
 
@@ -38,7 +38,9 @@ void sendTCP(SOCKET s, uint16_t message, uint8_t *ip_dest){
     int status;
     if(ip_dest != NULL){
         status = connect(s, ip_dest, DEFAULT_PORT);
+#ifdef DEBUG
         if(status <= 0){ printf("Error: echec du connect\n"); }
+#endif
     }
     
     // send
@@ -46,12 +48,13 @@ void sendTCP(SOCKET s, uint16_t message, uint8_t *ip_dest){
     buff[0] = (message & 0xFF00) >> 8;
     buff[1] = message & 0x00FF;
     status = send(s, buff, TRAME_SIZE);
+#ifdef DEBUG
     if(status <= 0){ printf("Error: echec du send\n"); }
+#endif
     
     // disconnect ?
-    if(ip_dest != NULL){
+    if(ip_dest != NULL)
         disconnect(s);
-    }
 }
 
 void traitementTrame(uint16_t data, uint8_t *ip_src, SOCKET sTCP){
@@ -73,8 +76,10 @@ void traitementTrame(uint16_t data, uint8_t *ip_src, SOCKET sTCP){
                 status_interf = MODE_EVEIL;
             else if((data & DATA_MASK) == MODE_SOMMEIL)
                 status_interf = MODE_SOMMEIL;
+#ifdef DEBUG
             else
                 printf("Erreur setStatus : status inconnu :%d:", data & DATA_MASK);
+#endif
             break;
         case GET_COMMANDE:
             sendTCP(sTCP,
@@ -94,7 +99,9 @@ void traitementTrame(uint16_t data, uint8_t *ip_src, SOCKET sTCP){
 }
 
 int main(void){
+#ifdef DEBUG
     init_printf();
+#endif
 
     // Ethernet
     uint8_t mac[] = {0x00, 0x20, 0x20, 0x20, 0x20, 0x08};
@@ -107,21 +114,29 @@ int main(void){
     SOCKET sUDP = next_socket_id;
     next_socket_id++;
     int status = socket(sUDP, Sn_MR_UDP, DEFAULT_PORT, 0);
+#ifdef DEBUG
     if(status <= 0){ printf("Error: echec de la creation de la socket UDP\n"); }
+#endif
 
     // socket TCP
     SOCKET sTCP = next_socket_id;
     next_socket_id++;
     status = socket(sTCP, Sn_MR_TCP, DEFAULT_PORT, 0);
+#ifdef DEBUG
     if(status <= 0){ printf("Error: echec de la creation de la socket reponse TCP\n"); }
+#endif
 
     // socket TCP listen
     SOCKET sTCPlisten = next_socket_id;
     next_socket_id++;
     status = socket(sTCPlisten, Sn_MR_TCP, DEFAULT_PORT, 0);
+#ifdef DEBUG
     if(status <= 0){ printf("Error: echec de la creation de la socket reponse TCP\n"); }
+#endif
     status = listen(sTCPlisten);
+#ifdef DEBUG
     if(status <= 0){ printf("Error: echec du listen TCP\n"); }
+#endif
     
     int recu;
     while(1){
@@ -134,11 +149,15 @@ int main(void){
         for(i=0; i<BUFFER_SIZE; i++)
             data[i] = 0;
         
+        // reception
         recu = recvfrom(sUDP, data, BUFFER_SIZE, ip_src, &port);
         if(recu > 0 && recu <= 4){
+#ifdef DEBUG
             printf("IP :%d.%d.%d.%d:\n", ip_src[0], ip_src[1], ip_src[2], ip_src[3]);
             printf("Recu : 0x%02x 0x%02x\n", data[0], data[1]);
+#endif
             
+            // traitement
             uint16_t data16 = (data[0] << 8) + data[1];
             traitementTrame(data16, ip_src, sTCP);
         }
@@ -152,13 +171,28 @@ int main(void){
                 data[i] = 0;
             recu = recv(sTCPlisten, data, BUFFER_SIZE);
             if(recu > 0 && recu <= 4){
+#ifdef DEBUG
                 printf("IP :%d.%d.%d.%d:\n", ip_src[0], ip_src[1], ip_src[2], ip_src[3]);
                 printf("Recu : 0x%02x 0x%02x\n", data[0], data[1]);
+#endif
 
                 // traitement
                 uint16_t data16 = (data[0] << 8) + data[1];
-                traitementTrame(data16, NULL, sTCP);
+                traitementTrame(data16, NULL, sTCPlisten);
             }
+
+            // déconnection
+            disconnect(sTCPlisten);
+
+            // relisten
+            status = socket(sTCPlisten, Sn_MR_TCP, DEFAULT_PORT, 0);
+#ifdef DEBUG
+            if(status <= 0){ printf("Error: echec de la creation de la socket reponse TCP\n"); }
+#endif
+            status = listen(sTCPlisten);
+#ifdef DEBUG
+            if(status <= 0){ printf("Error: echec du listen TCP\n"); }
+#endif
         }
 
         _delay_ms(100);

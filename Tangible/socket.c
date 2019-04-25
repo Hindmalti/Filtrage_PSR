@@ -234,7 +234,7 @@ uint16 send(
 			printf("socket %d freesize(%d) empty or error\r\n", s, freesize);
 #endif
 			ret = 0; 
-			break;
+			return ret;
 		}
 	} while (freesize < ret);
 
@@ -528,7 +528,6 @@ uint16 recvfrom(
 
 uint16 igmpsend(SOCKET s, const uint8 * buf, uint16 len)
 {
-	uint8 status=0;
 //	uint8 isr=0;
 	uint16 ret=0;
 	
@@ -562,7 +561,7 @@ uint16 igmpsend(SOCKET s, const uint8 * buf, uint16 len)
 	   while ( (IINCHIP_READ(Sn_IR(s)) & Sn_IR_SEND_OK) != Sn_IR_SEND_OK ) 
 #endif
 		{
-			status = IINCHIP_READ(Sn_SR(s));
+			IINCHIP_READ(Sn_SR(s));
 #ifdef __DEF_IINCHIP_INT__
       	if (getISR(s) & Sn_IR_TIMEOUT)
 #else

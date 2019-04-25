@@ -18,6 +18,9 @@ OBJECTS = $(SOURCES:.c=.o)
 
 all: $(TARGET).hex
 
+debug: FLAGS += -DDEBUG -g
+debug: $(TARGET).hex
+
 clean:
 	rm -f *.o $(TARGET).hex $(TARGET)
 
