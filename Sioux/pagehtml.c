@@ -27,7 +27,8 @@ static char *pageAccueilTitle(){
     return "<!DOCTYPE html>\n \
         <html>\n \
             <head>\n \
-                 <meta charset=\"UTF-8\"> \n \
+                <meta http-equiv=\"refresh\" content=\"5\"> \n \
+                <meta charset=\"UTF-8\"> \n \
                 <title>Sonde du groupe 8</title>\n \
                 <link rel=\"stylesheet\" href=\"styles.css\"/>\n \
             </head>\n \

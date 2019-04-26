@@ -7,6 +7,8 @@
 #include "ethernet.h"
 #include "w5100.h"
 #include "socket.h"
+#include "spi.h"
+#include "spi_display.h"
 
 #define MAC_SIZE 6
 #define IPV4_SIZE 4
@@ -57,6 +59,23 @@ void sendTCP(SOCKET s, uint16_t message, uint8_t *ip_dest){
         disconnect(s);
 }
 
+void updateCommande(){
+    // séparation de chaque caractere hexadecimal
+    char hex_byte1 = commande >> 12;
+    char hex_byte2 = (commande >> 8) & 0x000F;
+    char hex_byte3 = (commande >> 4) & 0x000F;
+    char hex_byte4 = commande & 0x000F;
+
+    // affichage
+    spi_init();
+    spi_display_init();
+    spi_display_cmd1(0x76);
+    _delay_ms(100);
+    spi_display_cmd2(0x7A, 255);
+    _delay_ms(100);
+    spi_display_data(hex_byte1, hex_byte2, hex_byte3, hex_byte4);
+}
+
 void traitementTrame(uint16_t data, uint8_t *ip_src, SOCKET sTCP){
     // determination de la commande
     int commandeId = (data & COMMANDE_MASK) >> 13;
@@ -84,13 +103,19 @@ void traitementTrame(uint16_t data, uint8_t *ip_src, SOCKET sTCP){
         case GET_COMMANDE:
             sendTCP(sTCP,
                 (RET_COMMANDE << 13)
-                | (commande & DATA_MASK), ip_src);
+                | ((commande >> 3) & DATA_MASK), ip_src);
             break;
         case RET_COMMANDE:
             // on ignore
             break;
         case SET_COMMANDE:
-            commande = data & DATA_MASK;
+            if(status_interf == MODE_EVEIL){
+                commande = (data & DATA_MASK) << 3;
+#ifdef DEBUG
+                printf("setCommande :0x%04x:\n", commande);
+#endif
+                updateCommande();
+            }
             break;
         default:
             // on ignore
@@ -99,14 +124,25 @@ void traitementTrame(uint16_t data, uint8_t *ip_src, SOCKET sTCP){
 }
 
 int main(void){
-#ifdef DEBUG
     init_printf();
-#endif
+    spi_init();
+    spi_display_init();
+    spi_display_cmd1(0x76);
+    _delay_ms(100);
+    spi_display_cmd2(0x7A, 255);
+    _delay_ms(100);
+
+    spi_display_data('p','r','e','t');
+
+
+    commande = 0x564E;
+    updateCommande();
+
 
     // Ethernet
     uint8_t mac[] = {0x00, 0x20, 0x20, 0x20, 0x20, 0x08};
-    uint8_t ip[] = {172, 26, 145, 208}; //{10, 0, 0, 2};
-    uint8_t gateway[] = {172, 26, 145, 44}; //{10, 0, 0, 1};
+    uint8_t ip[] = {172, 26, 145, 200 + INTERFACE_ID};
+    uint8_t gateway[] = {172, 26, 145, 44};
     uint8_t mask[] = {255, 255, 255, 0};
     ethernet_init(mac, ip, gateway, mask);
 
