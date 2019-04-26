@@ -1,20 +1,27 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "comInterface.h"
 
-static char *code200(char *contentType){
+static void code200(char *contentType, char *page){
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+
+    strcat(page, "HTTP/1.0 200 OK\n \
+            Server: Sioux/0.9.0\n");
+    
+    strcat(page, "Date: ");
+    char date[80];
+    strftime(date, 80, "%a, %d %b %Y %H:%M:%S %Z", &tm);
+    strcat(page, date);
+    strcat(page, "\n");
+
     if(strcmp(contentType, "html") == 0)
-        return "HTTP/1.0 200 OK\n \
-            Server: Sioux/0.9.0\n \
-            Content-type: text/HTML\n\n";
+        strcat(page, "Content-type: text/HTML\n\n");
     if(strcmp(contentType, "css") == 0)
-        return "HTTP/1.0 200 OK\n \
-            Server: Sioux/0.9.0\n \
-            Content-type: text/CSS\n\n";
-    return "HTTP/1.0 200 OK\n \
-        Server: Sioux/0.9.0\n\n";
+        strcat(page, "Content-type: text/CSS\n\n");
 }
 
 static char *code404(){
@@ -104,9 +111,10 @@ static void pageAccueilTable(char *page){
         if(commande == -1)
             strcat(page, "<td>-</td>\n");
         else {
-            char hex[4];
+            char hex[5];
             sprintf(hex, "%04x", commande);
-            
+            hex[4] = '\0';
+
             strcat(page, "<td>0x");
             strcat(page, hex);
             strcat(page, "</td>\n");
@@ -123,7 +131,7 @@ static char *pageAccueilEnd(){
 }
 
 static void pageAccueil(char *page){
-    strcat(page, code200("html"));
+    code200("html", page);
     strcat(page, pageAccueilTitle());
     pageAccueilTable(page);
     strcat(page, pageAccueilEnd());
@@ -164,7 +172,7 @@ void getPage(char *request, char *path, char *page){
             return;
         }
         if(strcmp(path, "/styles.css") == 0) {
-            strcat(page, code200("css"));
+            code200("css", page);
             strcat(page, pageAccueilCSS());
             return;
         }
