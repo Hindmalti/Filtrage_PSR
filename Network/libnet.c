@@ -52,7 +52,7 @@ void sendUDPUnicast(char *address, char *message, int taille_message, int port) 
     //Création de la socket : s = file descriptor de la socket, AF_INET (socket internet), SOCK_DGRAM (datagramme, UDP, sans connexion)
     if(s < 0){
         //Test de la valeur de retour de la socket
-        perror("sendUDPBroadcast.socket");
+        perror("sendUDPUnicast.socket");
         exit(-1); 
     }
     struct sockaddr_in unicast_address;
@@ -64,26 +64,13 @@ void sendUDPUnicast(char *address, char *message, int taille_message, int port) 
     //Mise du port en ordre du réseau (big endian)
     unicast_address.sin_addr.s_addr = inet_addr(address);
     if(sendto(s, message, taille_message, 0, (struct sockaddr *) &unicast_address, sizeof(unicast_address)) < 0 ) {
-        perror("sendUDPBroadcast.sendto");
+        perror("sendUDPUnicast.sendto");
         exit(-1);
     }
 }
 
 // Retourne l'adresse ip d'une connexion active
-static int socketVersNom(int s,char *nom){
-    struct sockaddr_storage adresse;
-    struct sockaddr *padresse = (struct sockaddr *) &adresse;
-    socklen_t taille = sizeof adresse;
-    int statut;
-
-    /* Recupere l'adresse de la socket distante */
-    statut = getpeername(s, padresse, &taille);
-    if(statut<0){
-        perror("socketVersNom.getpeername");
-        exit(-1);
-    }
-
-    /* Recupere le nom de la machine */
+static int socketVersNomUDP(struct sockaddr *padresse, char *nom){
     void *ip;
     int taille_nom;
     if(padresse->sa_family == AF_INET){
@@ -96,8 +83,26 @@ static int socketVersNom(int s,char *nom){
         ip = (void *)&ipv6->sin6_addr;
         taille_nom = INET6_ADDRSTRLEN;
     }
-    inet_ntop(padresse->sa_family, ip, nom, taille_nom);
+    char nom_deco[20];
+    inet_ntop(padresse->sa_family, ip, nom_deco, taille_nom);
+    sprintf(nom, "%s", nom_deco + 7);
     return 0;
+}
+static int socketVersNomTCP(int s, char *nom){
+    struct sockaddr_storage adresse;
+    struct sockaddr *padresse = (struct sockaddr *) &adresse;
+    socklen_t taille = sizeof adresse;
+    int statut;
+
+    /* Recupere l'adresse de la socket distante */
+    statut = getpeername(s, padresse, &taille);
+    if(statut<0){
+        perror("socketVersNom.getpeername");
+        return -1;
+    }
+
+    /* Recupere le nom de la machine */
+    return socketVersNomUDP(padresse, nom);
 }
 
 // Fonction permettant de créer le serveur TCP
@@ -158,7 +163,7 @@ int initialisationServeurTCP(char *service){
 // Accepte toutes les connexions au serveur TCP et execute la fonction en argument
 int boucleServeurTCP(int socket, void (*traitement)(int, char *)){
     while(1){
-	// accept connection
+	    // accept connection
         struct sockaddr ip_src;
         socklen_t ip_len = sizeof(struct sockaddr);
         int socket_dialogue = accept(socket, &ip_src, &ip_len);
@@ -167,19 +172,19 @@ int boucleServeurTCP(int socket, void (*traitement)(int, char *)){
             return -1;
         }
 
-	// get ip addr
+	    // get ip addr
         char char_ip[20];
-        int status = socketVersNom(socket_dialogue, char_ip);
+        int status = socketVersNomTCP(socket_dialogue, char_ip);
         if(status < 0)
             perror("socketVersNom");
 
-	// callback function
+	    // callback function
         traitement(socket_dialogue, char_ip);
     }
     return 0;
 }
 
-// Cr�ation d'un serveur UDP
+// Creation d'un serveur UDP
 int initialisationServeurUDP(char *service){
     struct addrinfo precisions, *resultat, *origine;
     int statut;
@@ -223,7 +228,7 @@ int boucleServeurUDP(int s, void (*traitement)(unsigned char *, int, char *)){
     while(1){
         struct sockaddr_storage adresse;
         struct sockaddr *padresse = (struct sockaddr *) &adresse;
-        socklen_t taille=sizeof(adresse);
+        socklen_t taille = sizeof(adresse);
         unsigned char message[BUFFER_SIZE];
 
         int nboctets = recvfrom(s, message, BUFFER_SIZE, 0, (struct sockaddr *) padresse, &taille);
@@ -231,19 +236,9 @@ int boucleServeurUDP(int s, void (*traitement)(unsigned char *, int, char *)){
 
         /* Recupere le nom de la machine */
         char char_ip[20];
-        void *ip;
-        int taille_nom;
-        if(padresse->sa_family == AF_INET){
-            struct sockaddr_in *ipv4 = (struct sockaddr_in *) padresse;
-            ip = (void *) &ipv4->sin_addr;
-            taille_nom = INET_ADDRSTRLEN;
-        }
-        if(padresse->sa_family == AF_INET6){
-            struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *) padresse;
-            ip = (void *)&ipv6->sin6_addr;
-            taille_nom = INET6_ADDRSTRLEN;
-        }
-        inet_ntop(padresse->sa_family, ip, char_ip, taille_nom);
+        int status = socketVersNomUDP(padresse, char_ip);
+        if(status < 0)
+            perror("socketVersNom");
 
         traitement(message, nboctets, char_ip);
     }

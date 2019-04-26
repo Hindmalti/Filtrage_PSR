@@ -11,6 +11,7 @@ int getCommandeInterface(int index);
 
 void broadCastGetStatus();
 void broadCastGetCommande();
+void uniCastSetCommande(int index, int commande);
 
 void traiteRequete(int requete, char *ip_src);
 

@@ -37,11 +37,15 @@ uint8_t next_socket_id = 0;
 
 void sendTCP(SOCKET s, uint16_t message, uint8_t *ip_dest){
     // connect ?
-    int status;
-    if(ip_dest != NULL){
-        status = connect(s, ip_dest, DEFAULT_PORT);
 #ifdef DEBUG
+    int status;
+#endif
+    if(ip_dest != NULL){
+#ifdef DEBUG
+        status = connect(s, ip_dest, DEFAULT_PORT);
         if(status <= 0){ printf("Error: echec du connect\n"); }
+#else
+        connect(s, ip_dest, DEFAULT_PORT);
 #endif
     }
     
@@ -49,9 +53,11 @@ void sendTCP(SOCKET s, uint16_t message, uint8_t *ip_dest){
     uint8_t buff[TRAME_SIZE];
     buff[0] = (message & 0xFF00) >> 8;
     buff[1] = message & 0x00FF;
-    status = send(s, buff, TRAME_SIZE);
 #ifdef DEBUG
+    status = send(s, buff, TRAME_SIZE);
     if(status <= 0){ printf("Error: echec du send\n"); }
+#else
+    send(s, buff, TRAME_SIZE);
 #endif
     
     // disconnect ?
@@ -101,7 +107,6 @@ void traitementTrame(uint16_t data, uint8_t *ip_src, SOCKET sTCP){
 #endif
             break;
         case GET_COMMANDE:
-            printf("aaaaaaaaaaaaaa 0x%04x\n", (RET_COMMANDE << 13) | (commande & DATA_MASK));
             sendTCP(sTCP,
                 (RET_COMMANDE << 13)
                 | (commande & DATA_MASK), ip_src);

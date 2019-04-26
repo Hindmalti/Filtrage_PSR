@@ -106,6 +106,7 @@ static void pageAccueilTable(char *page){
         else {
             char hex[4];
             sprintf(hex, "%04x", commande);
+            
             strcat(page, "<td>0x");
             strcat(page, hex);
             strcat(page, "</td>\n");

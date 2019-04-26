@@ -4,6 +4,9 @@ LIBS=-lpcap -lnet -lthrd -lpthread -L ../libs
 
 all: compile
 
+debug: FLAGS += -DDEBUG
+debug: compile
+
 clean:
 	rm -f *.o *.out
 

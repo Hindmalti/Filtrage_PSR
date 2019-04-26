@@ -21,6 +21,8 @@
 
 #define IP_ADDR_CHAR_LENGTH 50
 
+#define DEFAULT_IP_INTERFACE "172.26.145.208"
+
 int etats[NBR_INTERFACES];
 char ips[NBR_INTERFACES][IP_ADDR_CHAR_LENGTH];
 int commandes[NBR_INTERFACES];
@@ -53,6 +55,15 @@ void broadCastGetCommande(){
     message[0] = 0x60;
     message[1] = 0x00;
     sendUDPBroadcast(message, REQUETE_LENGTH, 2020);
+}
+void uniCastSetCommande(int index, int commande){
+    char message[REQUETE_LENGTH];
+    message[0] = 0xA0 | (((commande & DATA_MASK) >> 8 ) & 0xFF);
+    message[1] = commande & DATA_MASK & 0xFF;
+    if(etats[index] != -1)
+        sendUDPUnicast(ips[index], message, REQUETE_LENGTH, 2020);
+    else
+        sendUDPUnicast(DEFAULT_IP_INTERFACE, message, REQUETE_LENGTH, 2020);
 }
 
 static void retStatus(int requete, char *ip_src){

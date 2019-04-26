@@ -8,6 +8,7 @@
 #include <libnet.h>
 #include <libthrd.h>
 
+#include "sniffARP.h"
 #include "pagehtml.h"
 #include "comInterface.h"
 
@@ -21,6 +22,8 @@
 #define MAX_CHAR_PAGE 1024
 
 #define PORT_INTERFACE "2020"
+
+#define ID_INTERFACE 8
 
 // ----- Serveur HTTP -----
 
@@ -97,8 +100,23 @@ void _boucleServeurUDP(void *arg){
     boucleServeurUDP(sUDP, gestionClientUDP);
 }
 
+
+void sniffer_result(int nARP){
+    uniCastSetCommande(ID_INTERFACE - 1, nARP);
+}
+void _lanceSniffer(void * args){
+    (void) args;
+
+    sniff(sniffer_result);
+}
+
 int main(int argc, char *argv[]) {
     (void) argc;
+
+    initTableauxInterface();
+
+    // --- Sniffing packet ARP ---
+    lanceThread(_lanceSniffer, NULL, 0);
 
     // --- Serveur HTTP (sonde <-> PC) ---
     int sHTTP = initialisationServeurTCP(argv[1]);
