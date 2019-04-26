@@ -101,16 +101,17 @@ void traitementTrame(uint16_t data, uint8_t *ip_src, SOCKET sTCP){
 #endif
             break;
         case GET_COMMANDE:
+            printf("aaaaaaaaaaaaaa 0x%04x\n", (RET_COMMANDE << 13) | (commande & DATA_MASK));
             sendTCP(sTCP,
                 (RET_COMMANDE << 13)
-                | ((commande >> 3) & DATA_MASK), ip_src);
+                | (commande & DATA_MASK), ip_src);
             break;
         case RET_COMMANDE:
             // on ignore
             break;
         case SET_COMMANDE:
             if(status_interf == MODE_EVEIL){
-                commande = (data & DATA_MASK) << 3;
+                commande = data & DATA_MASK;
 #ifdef DEBUG
                 printf("setCommande :0x%04x:\n", commande);
 #endif
@@ -133,11 +134,6 @@ int main(void){
     _delay_ms(100);
 
     spi_display_data('p','r','e','t');
-
-
-    commande = 0x564E;
-    updateCommande();
-
 
     // Ethernet
     uint8_t mac[] = {0x00, 0x20, 0x20, 0x20, 0x20, 0x08};

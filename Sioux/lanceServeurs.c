@@ -61,7 +61,7 @@ void gestionClientHTTP(int s, char *ip_src){
 // ----- Serveur TCP -----
 void gestionClientTCP(int s, char *ip_src){
     FILE *dialogue = fdopen(s, "a+");
-    if(dialogue==NULL){ perror("gestionClientTCP.fdopen"); exit(-1); }
+    if(dialogue == NULL){ perror("gestionClientTCP.fdopen"); exit(-1); }
     
     char line[BUFFER_SIZE];
     char *success = fgets(line, BUFFER_SIZE, dialogue);
@@ -70,7 +70,7 @@ void gestionClientTCP(int s, char *ip_src){
         return;
     }
 
-    int requete = (line[0] << 8) + line[1];
+    int requete = ((line[0] & 0xFF) << 8) + (line[1] & 0xFF);
     traiteRequete(requete, ip_src);
     
     fclose(dialogue);
@@ -82,7 +82,7 @@ void gestionClientUDP(unsigned char *message, int message_length, char *ip_src){
     if(message_length < MIN_REQ_BYTE)
         return;
 
-    int requete = (message[0] << 8) + message[1];
+    int requete = ((message[0] & 0xFF) << 8) + (message[1] & 0xFF);
     traiteRequete(requete, ip_src);
 }
 

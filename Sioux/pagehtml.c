@@ -22,12 +22,11 @@ static char *code404(){
         Server: Sioux/0.9.0\n \
         Content-type: text/HTML\n\n";
 }
-
+/*<meta http-equiv=\"refresh\" content=\"5\"> \n \*/
 static char *pageAccueilTitle(){
     return "<!DOCTYPE html>\n \
         <html>\n \
             <head>\n \
-                <meta http-equiv=\"refresh\" content=\"5\"> \n \
                 <meta charset=\"UTF-8\"> \n \
                 <title>Sonde du groupe 8</title>\n \
                 <link rel=\"stylesheet\" href=\"styles.css\"/>\n \
@@ -63,7 +62,11 @@ static void pageAccueilTable(char *page){
     // broadcast getStatus
     broadCastGetStatus();
     // attente du retour des status des interfaces
-    usleep(1000000); // 1000 ms
+    usleep(500000); // 500 ms
+    // broadcast getCommande
+    broadCastGetCommande();
+    // attente du retour des commandes des interfaces
+    usleep(500000); // 500 ms
     
     for(int i=0; i<NBR_INTERFACES; i++){
         int etat = getEtatInterface(i);
@@ -86,12 +89,28 @@ static void pageAccueilTable(char *page){
         if(ip[0] == '\0')
             strcat(page, "<td>-</td>\n");
         else {
-            strcat(page, "<td>");
+            strcat(page, "<td class=\"ip\">");
             strcat(page, ip);
             strcat(page, "</td>\n");
         }
     }
     
+    strcat(page, "</tr>\n \
+        <tr>\n \
+            <th>Commande</th>");
+    
+    for(int i=0; i<NBR_INTERFACES; i++){
+        int commande = getCommandeInterface(i);
+        if(commande == -1)
+            strcat(page, "<td>-</td>\n");
+        else {
+            char hex[4];
+            sprintf(hex, "%04x", commande);
+            strcat(page, "<td>0x");
+            strcat(page, hex);
+            strcat(page, "</td>\n");
+        }
+    }
     
     strcat(page, "</tr>\n \
         </table>\n");
@@ -112,7 +131,7 @@ static void pageAccueil(char *page){
 static char *pageAccueilCSS(){
     return "table{\n \
             border: 1px solid black;\n \
-            margin-left: 20px; \n \
+            margin-left: 20px;\n \
         }\n \
         th, td{\n \
             border: solid 1px black;\n \
@@ -120,16 +139,19 @@ static char *pageAccueilCSS(){
             text-align: center;\n \
         }\n \
         .not_responding{\n \
-            color: red\n \
+            color: red;\n \
         }\n \
         .sleep_mode{\n \
-            color: orange\n \
+            color: orange;\n \
         }\n \
         .listening_mode{\n \
-            color: green\n \
+            color: green;\n \
         }\n \
         .unknow_status{\n \
-            color: black\n \
+            color: black;\n \
+        }\n \
+        .ip{\n \
+            font-size: 10px;\n \
         }";
 }
 

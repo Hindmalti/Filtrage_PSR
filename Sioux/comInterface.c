@@ -23,9 +23,11 @@
 
 int etats[NBR_INTERFACES];
 char ips[NBR_INTERFACES][IP_ADDR_CHAR_LENGTH];
+int commandes[NBR_INTERFACES];
 void initTableauxInterface(){
     for(int i=0; i<NBR_INTERFACES; i++){
         etats[i] = -1;
+        commandes[i] = -1;
         for(int j=0; j<IP_ADDR_CHAR_LENGTH; j++)
             ips[i][j] = '\0';
     }
@@ -36,10 +38,19 @@ int getEtatInterface(int index){
 char *getIpInterface(int index){
     return ips[index];
 }
+int getCommandeInterface(int index){
+    return commandes[index];
+}
 
 void broadCastGetStatus(){
     char message[REQUETE_LENGTH];
     message[0] = 0x00;
+    message[1] = 0x00;
+    sendUDPBroadcast(message, REQUETE_LENGTH, 2020);
+}
+void broadCastGetCommande(){
+    char message[REQUETE_LENGTH];
+    message[0] = 0x60;
     message[1] = 0x00;
     sendUDPBroadcast(message, REQUETE_LENGTH, 2020);
 }
@@ -57,10 +68,23 @@ static void retStatus(int requete, char *ip_src){
     strcpy(ips[idInterf], ip_src);
 }
 
+static void retCommande(int requete, char *ip_src){
+    int commande = requete & DATA_MASK;
+
+    // recherche à qui est cette addr ip
+    for(int i=0; i<NBR_INTERFACES; i++){
+        if(strcmp(ips[i], ip_src) == 0){
+            // enregistre la commande
+            commandes[i] = commande;
+            break;
+        }
+    }
+}
+
 void traiteRequete(int requete, char *ip_src){
     // determination de la commande
     int commandeId = (requete & COMMANDE_MASK) >> 13;
-    
+
     switch(commandeId){
         case GET_STATUS:
             // on ignore
@@ -75,7 +99,7 @@ void traiteRequete(int requete, char *ip_src){
             // on ignore
             break;
         case RET_COMMANDE:
-            
+            retCommande(requete, ip_src);
             break;
         case SET_COMMANDE:
             // on ignore

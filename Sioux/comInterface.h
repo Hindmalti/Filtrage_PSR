@@ -7,7 +7,11 @@
 void initTableauxInterface();
 int getEtatInterface(int index);
 char *getIpInterface(int index);
+int getCommandeInterface(int index);
+
 void broadCastGetStatus();
+void broadCastGetCommande();
+
 void traiteRequete(int requete, char *ip_src);
 
 #endif
