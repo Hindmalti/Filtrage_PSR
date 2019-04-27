@@ -16,7 +16,7 @@
 #define BUFFER_SIZE 1024
 
 //Fonction permettant d'envoyer en broadcast un message 
-void sendUDPBroadcast(char *message, int taille_message, int port) {
+void sendUDPBroadcast(unsigned char *message, int taille_message, int port) {
     int broadcast_enable = 1;
     //Option broadcast ON
     int s = socket(AF_INET, SOCK_DGRAM, 0);
@@ -47,7 +47,7 @@ void sendUDPBroadcast(char *message, int taille_message, int port) {
 }
 
 
-void sendUDPUnicast(char *address, char *message, int taille_message, int port) {
+void sendUDPUnicast(char *address, unsigned char *message, int taille_message, int port) {
     int s = socket(AF_INET, SOCK_DGRAM, 0);
     //Création de la socket : s = file descriptor de la socket, AF_INET (socket internet), SOCK_DGRAM (datagramme, UDP, sans connexion)
     if(s < 0){

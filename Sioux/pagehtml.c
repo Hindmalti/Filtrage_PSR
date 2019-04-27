@@ -5,6 +5,7 @@
 
 #include "comInterface.h"
 
+/* ----- Formation de des entetes HTTP ----- */
 static void code200(char *contentType, char *page){
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
@@ -23,13 +24,12 @@ static void code200(char *contentType, char *page){
     if(strcmp(contentType, "css") == 0)
         strcat(page, "Content-type: text/CSS\n\n");
 }
-
 static char *code404(){
     return "HTTP/1.0 404 Not Found\n \
         Server: Sioux/0.9.0\n \
         Content-type: text/HTML\n\n";
 }
-/*<meta http-equiv=\"refresh\" content=\"5\"> \n \*/
+
 static char *pageAccueilTitle(){
     return "<!DOCTYPE html>\n \
         <html>\n \
@@ -75,6 +75,7 @@ static void pageAccueilTable(char *page){
     // attente du retour des commandes des interfaces
     usleep(500000); // 500 ms
     
+    // affichage des etats
     for(int i=0; i<NBR_INTERFACES; i++){
         int etat = getEtatInterface(i);
         if(etat == -1)
@@ -87,6 +88,7 @@ static void pageAccueilTable(char *page){
             strcat(page, "<td class=\"unknow_status\">S?</td>\n");
     }
     
+    // affichage des ips
     strcat(page, "</tr>\n \
         <tr>\n \
             <th>IP</th>");
@@ -102,6 +104,7 @@ static void pageAccueilTable(char *page){
         }
     }
     
+    // afichage des commandes en memoire des interfaces
     strcat(page, "</tr>\n \
         <tr>\n \
             <th>Commande</th>");

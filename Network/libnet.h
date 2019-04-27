@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-int sendUDPBroadcast(char *message, int taille_message, int port);
-int sendUDPUnicast(char *address, char *message, int taille_message, int port);
+int sendUDPBroadcast(unsigned char *message, int taille_message, int port);
+int sendUDPUnicast(char *address, unsigned char *message, int taille_message, int port);
 
 int initialisationServeurTCP(char *service);
 int boucleServeurTCP(int socket, void (*traitement)(int, char *));

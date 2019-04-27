@@ -45,21 +45,36 @@ int getCommandeInterface(int index){
 }
 
 void broadCastGetStatus(){
-    char message[REQUETE_LENGTH];
+    unsigned char message[REQUETE_LENGTH];
     message[0] = 0x00;
     message[1] = 0x00;
+
+#ifdef DEBUG
+    printf("UDP OUT 255.255.255.255 : 0x%02x%02x\n", message[0], message[1]);
+#endif
+
     sendUDPBroadcast(message, REQUETE_LENGTH, 2020);
 }
 void broadCastGetCommande(){
-    char message[REQUETE_LENGTH];
+    unsigned char message[REQUETE_LENGTH];
     message[0] = 0x60;
     message[1] = 0x00;
+
+#ifdef DEBUG
+    printf("UDP OUT 255.255.255.255 : 0x%02x%02x\n", message[0], message[1]);
+#endif
+
     sendUDPBroadcast(message, REQUETE_LENGTH, 2020);
 }
 void uniCastSetCommande(int index, int commande){
-    char message[REQUETE_LENGTH];
+    unsigned char message[REQUETE_LENGTH];
     message[0] = 0xA0 | (((commande & DATA_MASK) >> 8 ) & 0xFF);
     message[1] = commande & DATA_MASK & 0xFF;
+
+#ifdef DEBUG
+    printf("UDP OUT %s : 0x%02x%02x\n", ips[index], message[0], message[1]);
+#endif
+
     if(etats[index] != -1)
         sendUDPUnicast(ips[index], message, REQUETE_LENGTH, 2020);
     else

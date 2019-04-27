@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <pcap.h>
 #include <netinet/in.h>
@@ -21,23 +22,15 @@ void boucle_pcap_loop(void *args){
     pcap_loop(handle, 0, got_packet, NULL);
 }
 
-void sniff(void (*sniff_result)(int)){
+void sniff(void (*sniff_result)(int), char *dev){
     struct bpf_program fp;
-    char dev[] = "bridge";
     char errbuf[PCAP_ERRBUF_SIZE];
     bpf_u_int32 mask;
     bpf_u_int32 net;
     char filter_exp[] = "arp";
-
-    // search for default device
-    if(dev == NULL) {
-#ifdef DEBUG
-        fprintf(stderr, "Couldn't find default device: %s\n", errbuf);
-#endif
-    }
     
 #ifdef DEBUG
-    printf("Dev :%s:\n", dev);
+    printf("pcap dev :%s:\n", dev);
 #endif
     
     // open device
@@ -46,6 +39,7 @@ void sniff(void (*sniff_result)(int)){
 #ifdef DEBUG
         fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
 #endif
+        exit(-1);
     }
     int status = pcap_lookupnet(dev, &net, &mask, errbuf);
     if(status == -1){
