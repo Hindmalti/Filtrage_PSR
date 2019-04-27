@@ -71,14 +71,17 @@ void uniCastSetCommande(int index, int commande){
     message[0] = 0xA0 | (((commande & DATA_MASK) >> 8 ) & 0xFF);
     message[1] = commande & DATA_MASK & 0xFF;
 
+    if(etats[index] != -1){
 #ifdef DEBUG
     printf("UDP OUT %s : 0x%02x%02x\n", ips[index], message[0], message[1]);
 #endif
-
-    if(etats[index] != -1)
         sendUDPUnicast(ips[index], message, REQUETE_LENGTH, 2020);
-    else
+    }else{
+#ifdef DEBUG
+    printf("UDP OUT %s : 0x%02x%02x\n", DEFAULT_IP_INTERFACE, message[0], message[1]);
+#endif
         sendUDPUnicast(DEFAULT_IP_INTERFACE, message, REQUETE_LENGTH, 2020);
+    }
 }
 
 static void retStatus(int requete, char *ip_src){

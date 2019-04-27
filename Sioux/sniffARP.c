@@ -36,9 +36,7 @@ void sniff(void (*sniff_result)(int), char *dev){
     // open device
     handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
     if(handle == NULL) {
-#ifdef DEBUG
         fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
-#endif
         exit(-1);
     }
     int status = pcap_lookupnet(dev, &net, &mask, errbuf);

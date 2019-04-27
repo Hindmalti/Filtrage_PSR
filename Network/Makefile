@@ -4,6 +4,9 @@ CLIB=ar cq
 
 all: $(TARGET).a
 
+debug: CFLAGS += -g -DDEBUG
+debug: all
+
 clean:
 	rm -f *.o *.a
 	rm -f ../libs/$(TARGET).o

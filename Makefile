@@ -22,7 +22,10 @@ $(patsubst %,_dir_%,$(DIRS)):
 	cd $(patsubst _dir_%,%,$@) && make
 
 debug: CFLAGS += -g -DDEBUG
-debug: all
+debug: $(patsubst %, _debug_%, $(DIRS))
+
+$(patsubst %,_debug_%,$(DIRS)):
+	cd $(patsubst _debug_%,%,$@) && make debug
 
 #
 # La cible de nettoyage
