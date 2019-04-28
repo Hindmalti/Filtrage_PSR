@@ -18,6 +18,9 @@ DIRS = Threads Network Sioux Tangible
 
 all: $(patsubst %, _dir_%, $(DIRS))
 
+upload:
+	cd Tangible && make upload
+
 $(patsubst %,_dir_%,$(DIRS)):
 	cd $(patsubst _dir_%,%,$@) && make
 

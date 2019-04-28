@@ -23,11 +23,14 @@ debug: $(TARGET).hex
 
 clean:
 	rm -f *.o $(TARGET).hex $(TARGET)
+	rm -f ../bin/$(TARGET).hex
 
 $(TARGET): $(OBJECTS)
 
 $(TARGET).hex: $(TARGET)
 	avr-objcopy -j .text -j .data -O ihex $(TARGET) $(TARGET).hex
+	mkdir -p ../bin
+	cp $(TARGET).hex ../bin/
 
 upload: $(TARGET).hex
 	stty -F $(SERIAL) hupcl
